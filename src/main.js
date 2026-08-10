@@ -18,6 +18,7 @@ import { createTimeControls } from './ui/timeControls.js'
 import { createSurfaceHud } from './ui/surfaceHud.js'
 import { createLanding } from './scenes/landing.js'
 import missionsData from '../data/missions.json'
+import edlData from '../data/edl.json'
 
 const canvas = document.getElementById('scene')
 const renderer = createRenderer(canvas)
@@ -79,8 +80,12 @@ const timeControls = createTimeControls()
 const infoPanel = createInfoPanel({
   elements: orbitalElements.planets,
   missions: missionsData,
+  edlProfiles: edlData.profiles,
   onClose: () => deselect(),
-  onLand: (body) => landing.enter(body),
+  onLand: (body) => {
+    infoPanel.hide() // 时序一开始就收起资料面板，否则前半段会和 EDL 面板叠在一起
+    landing.enter(body)
+  },
 })
 
 // ---- 登陆 / 返回轨道 --------------------------------------------------------
@@ -92,6 +97,7 @@ const landing = createLanding({
   bodySystem,
   elements: orbitalElements.planets,
   missions: missionsData,
+  edlProfiles: edlData.profiles,
   surfaceHud,
   onModeChange: (mode) => {
     // 地表模式下把轨道场景的 UI 全部收起来
@@ -134,8 +140,10 @@ window.addEventListener('keydown', (e) => {
 
   switch (e.code) {
     case 'Escape':
-      // 地表模式下 ESC 由浏览器交还指针，不该顺带取消轨道场景的选中
-      if (landing.getMode() !== 'surface') deselect()
+      // 正在播 EDL 时序时 ESC 表示跳过；地表模式下 ESC 由浏览器交还指针，
+      // 都不该顺带取消轨道场景的选中
+      if (landing.isTransitioning()) landing.skipSequence()
+      else if (landing.getMode() !== 'surface') deselect()
       return
     case 'Space':
       e.preventDefault()

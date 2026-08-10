@@ -1,25 +1,21 @@
-import './../ui/surface.css'
 import { createSurfaceScene } from './surface.js'
+import { createEdlSequence } from '../ui/edlSequence.js'
 
 /**
  * 登陆流程的调度器。
  *
- * 明确的设计前提：**不做从太空到地表的无缝过渡**。
- * 两套场景的单位制差了九个数量级（轨道场景 1 单位 = 100 万 km，地表 1 单位 = 1 米），
- * 硬凑无缝要么牺牲轨道精度，要么牺牲地表精度。所以用转场遮罩切换独立场景，
- * 这是刻意的取舍，不是妥协。
+ * 明确的设计前提：**不做太空到地表的无缝过渡**。
+ * 两套场景的单位制差了九个数量级（轨道 1 单位 = 100 万 km，地表 1 单位 = 1 米），
+ * 硬凑无缝要么牺牲轨道精度，要么牺牲地表精度。所以用转场切换独立场景。
  *
- * 时序（进入）：
- *   0.0s  相机向天体推进
- *   0.5s  遮罩升白 / 大气进入色
- *   1.4s  遮罩全不透明 → 构建地表场景、切换渲染目标
- *   1.6s  遮罩淡出，露出地表
+ * 转场不是一段装饰性的白光，而是按 data/edl.json 播放该天体的
+ * 进入-下降-着陆时序：每个阶段给出真实的高度、速度与当时在发生什么。
+ * 场景切换安排在遮罩最不透明的那一步，因此切换本身是看不见的。
  */
 
-const PUSH_IN = 0.5
-const VEIL_IN = 0.9
-const HOLD = 0.2
-const VEIL_OUT = 1.0
+const EXIT_VEIL_IN = 0.9
+const EXIT_HOLD = 0.2
+const EXIT_VEIL_OUT = 1.0
 
 export function createLanding({
   renderer,
@@ -27,44 +23,18 @@ export function createLanding({
   bodySystem,
   elements,
   missions,
+  edlProfiles,
   surfaceHud,
   onModeChange,
 }) {
-  const veil = document.createElement('div')
-  veil.className = 'transition-veil'
-  document.body.appendChild(veil)
-
-  const caption = document.createElement('div')
-  caption.className = 'transition-caption'
-  document.body.appendChild(caption)
+  const sequence = createEdlSequence({ onSkip: () => sequence.skip() })
 
   let mode = 'orbit' // 'orbit' | 'surface'
   let surface = null
-  let phase = null // {kind:'enter'|'exit', t, body}
+  let exitPhase = null // 返回轨道用的简单遮罩时序
 
   function isLandable(body) {
-    return Boolean(body?.data?.surface?.landable)
-  }
-
-  function enter(body) {
-    if (phase || mode === 'surface' || !isLandable(body)) return
-    const tint = body.data.surface.sky?.horizon ?? '#ffffff'
-    veil.style.setProperty('--entry-tint', tint)
-    caption.textContent = `正在进入 ${body.data.name} 大气`
-    phase = { kind: 'enter', t: 0, body }
-
-    // 相机向天体表面推进，制造「扎进去」的感觉
-    cameraRig.flyTo(body, { distanceFactor: 1.12, duration: PUSH_IN + VEIL_IN })
-  }
-
-  function exit() {
-    if (phase || mode !== 'surface') return
-    const body = surface.body
-    caption.textContent = `正在离开 ${body.data.name}`
-    veil.style.setProperty('--entry-tint', body.data.surface.sky?.horizon ?? '#ffffff')
-    phase = { kind: 'exit', t: 0, body }
-    surface.scene.firstPerson?.unlock?.()
-    surface.firstPerson.unlock()
+    return Boolean(body?.data?.surface?.landable) && Boolean(edlProfiles[body.data.id])
   }
 
   function buildSurface(body) {
@@ -72,6 +42,8 @@ export function createLanding({
     surface.body = body
     surfaceHud.attach(surface)
     surfaceHud.show()
+    mode = 'surface'
+    onModeChange('surface')
   }
 
   function teardownSurface() {
@@ -80,53 +52,59 @@ export function createLanding({
     surface = null
   }
 
+  function enter(body) {
+    if (exitPhase || sequence.isRunning() || mode === 'surface' || !isLandable(body)) return
+
+    sequence.setTint(body.data.surface.sky?.horizon ?? '#ffffff')
+    const started = sequence.start(body.data.id, edlProfiles, () => buildSurface(body))
+    if (!started) return
+
+    // 相机同步向天体推进，时序前半段仍然是轨道视角
+    const profile = edlProfiles[body.data.id]
+    const untilSwap = profile.steps
+      .slice(0, Math.max(1, profile.steps.findIndex((s) => s.swap) + 1))
+      .reduce((sum, s) => sum + s.hold, 0)
+    cameraRig.flyTo(body, { distanceFactor: 1.12, duration: untilSwap })
+  }
+
+  function exit() {
+    if (exitPhase) return
+    // 地表 HUD 在时序后半段就已经露出来了，此时点「返回轨道」必须有反应：
+    // 先把剩余时序收掉，再走退出流程，否则按钮看着像坏的
+    if (sequence.isRunning()) sequence.skip()
+    if (mode !== 'surface' || !surface) return
+    const body = surface.body
+    surface.firstPerson.unlock()
+    sequence.fadeOut(body.data.surface.edlVeilStyle ?? 'plasma', body.data.surface.sky?.horizon)
+    exitPhase = { t: 0, body }
+  }
+
   function update(dt) {
     if (surface && mode === 'surface') surface.update(dt)
 
-    if (!phase) return
-    phase.t += dt
-    const t = phase.t
+    sequence.update(dt)
 
-    if (phase.kind === 'enter') {
-      if (t > PUSH_IN) veil.classList.add('is-hot')
-      if (t > PUSH_IN + VEIL_IN * 0.5) caption.classList.add('is-visible')
+    if (!exitPhase) return
+    exitPhase.t += dt
+    const t = exitPhase.t
 
-      if (mode === 'orbit' && t >= PUSH_IN + VEIL_IN) {
-        // 遮罩此刻完全不透明，切换是看不见的
-        buildSurface(phase.body)
-        mode = 'surface'
-        onModeChange('surface')
-      }
-      if (t >= PUSH_IN + VEIL_IN + HOLD) {
-        caption.classList.remove('is-visible')
-        veil.classList.remove('is-hot')
-        veil.classList.add('is-cooling')
-      }
-      if (t >= PUSH_IN + VEIL_IN + HOLD + VEIL_OUT) {
-        veil.classList.remove('is-cooling')
-        phase = null
-      }
-      return
-    }
-
-    // 退出：遮罩升起 → 拆掉地表场景 → 回到轨道视角
-    if (t > 0) veil.classList.add('is-hot')
-    if (t > VEIL_IN * 0.5) caption.classList.add('is-visible')
-
-    if (mode === 'surface' && t >= VEIL_IN) {
+    if (t <= EXIT_VEIL_IN) {
+      sequence.setVeilOpacity(t / EXIT_VEIL_IN)
+    } else if (mode === 'surface') {
+      sequence.setVeilOpacity(1)
       teardownSurface()
       mode = 'orbit'
       onModeChange('orbit')
-      cameraRig.flyTo(phase.body, { distanceFactor: 4.2, duration: VEIL_OUT })
+      cameraRig.flyTo(exitPhase.body, { distanceFactor: 4.2, duration: EXIT_VEIL_OUT })
     }
-    if (t >= VEIL_IN + HOLD) {
-      caption.classList.remove('is-visible')
-      veil.classList.remove('is-hot')
-      veil.classList.add('is-cooling')
-    }
-    if (t >= VEIL_IN + HOLD + VEIL_OUT) {
-      veil.classList.remove('is-cooling')
-      phase = null
+
+    if (t > EXIT_VEIL_IN + EXIT_HOLD) {
+      const out = (t - EXIT_VEIL_IN - EXIT_HOLD) / EXIT_VEIL_OUT
+      sequence.setVeilOpacity(Math.max(0, 1 - out))
+      if (out >= 1) {
+        sequence.setVeilOpacity(0)
+        exitPhase = null
+      }
     }
   }
 
@@ -137,6 +115,7 @@ export function createLanding({
     isLandable,
     getMode: () => mode,
     getSurface: () => surface,
-    isTransitioning: () => Boolean(phase),
+    isTransitioning: () => sequence.isRunning() || Boolean(exitPhase),
+    skipSequence: () => sequence.skip(),
   }
 }

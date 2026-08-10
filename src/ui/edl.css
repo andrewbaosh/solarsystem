@@ -1,0 +1,176 @@
+/* 进入-下降-着陆时序界面 */
+
+.edl-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 有大气：进入时高温等离子体致白 */
+.edl-veil.style-plasma {
+  background: radial-gradient(
+    circle at 50% 58%,
+    #ffffff 0%,
+    var(--entry-tint, #ffd9b0) 42%,
+    #ffffff 100%
+  );
+}
+
+/* 无大气：不存在气动加热，用暗场过渡而不是白光 */
+.edl-veil.style-dark {
+  background: radial-gradient(circle at 50% 58%, #0a0d14 0%, #000000 70%);
+}
+
+.edl-panel {
+  position: fixed;
+  left: 50%;
+  bottom: 8vh;
+  transform: translate(-50%, 16px);
+  z-index: 62;
+  width: min(620px, 92vw);
+  padding: 18px 22px 20px;
+  opacity: 0;
+  pointer-events: none;
+  color: #eef4ff;
+  background: rgba(6, 9, 16, 0.82);
+  border: 1px solid rgba(140, 180, 235, 0.32);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.edl-panel.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+/* 依据来源横幅 */
+.edl-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  /* 右侧给绝对定位的「跳过」按钮让出位置，否则来源文字会被压住 */
+  padding: 0 62px 11px 0;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: #92a8c8;
+  border-bottom: 1px solid rgba(140, 180, 235, 0.16);
+}
+
+.edl-badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.edl-badge.is-real {
+  color: #8fe0b0;
+  background: rgba(60, 165, 120, 0.16);
+  border: 1px solid rgba(110, 220, 170, 0.45);
+}
+
+.edl-badge.is-hypothetical {
+  color: #ffc978;
+  background: rgba(190, 130, 40, 0.16);
+  border: 1px solid rgba(255, 190, 90, 0.45);
+}
+
+/* 阶段标题与读数 */
+.edl-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.edl-phase {
+  font-size: 21px;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+
+.edl-elapsed {
+  flex: none;
+  font-size: 12px;
+  color: #7f93b5;
+}
+
+.edl-readout {
+  display: flex;
+  gap: 26px;
+  margin-bottom: 11px;
+  font-size: 12px;
+}
+
+.edl-readout div {
+  display: flex;
+  gap: 7px;
+}
+
+.edl-readout span:first-child {
+  color: #7f93b5;
+}
+
+.edl-readout span:last-child {
+  color: #fff;
+}
+
+.edl-text {
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: #dbe7f7;
+}
+
+.edl-text strong {
+  color: #fff;
+}
+
+/* 阶段进度点 */
+.edl-steps {
+  display: flex;
+  gap: 5px;
+  margin-top: 15px;
+}
+
+.edl-steps i {
+  flex: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(140, 180, 235, 0.2);
+}
+
+.edl-steps i.is-done {
+  background: rgba(140, 180, 235, 0.55);
+}
+
+.edl-steps i.is-current {
+  background: #9cc4ff;
+}
+
+.edl-skip {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  padding: 3px 11px;
+  color: #92a8c8;
+  background: transparent;
+  border: 1px solid rgba(140, 180, 235, 0.3);
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.edl-skip:hover {
+  color: #fff;
+  border-color: rgba(140, 180, 235, 0.6);
+}

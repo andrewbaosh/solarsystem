@@ -67,7 +67,7 @@ function orbitalSummary(body, elements, jd) {
   }
 }
 
-export function createInfoPanel({ elements, missions, onClose, onLand }) {
+export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLand }) {
   const panel = document.createElement('aside')
   panel.className = 'info-panel'
   panel.innerHTML = `
@@ -162,8 +162,12 @@ export function createInfoPanel({ elements, missions, onClose, onLand }) {
     const surface = data.surface ?? {}
     landBtn.classList.toggle('is-available', Boolean(surface.landable))
     landBtn.disabled = !surface.landable
+    // 按钮上就区分清楚：这一段是复现真实任务，还是没有先例的虚拟方案
+    const edl = edlProfiles?.[data.id]
     landBtn.textContent = surface.landable
-      ? `登陆 ${data.name}　·　${surface.site?.name ?? ''}`
+      ? edl?.real
+        ? `登陆 ${data.name}　·　复现${edl.basedOn.mission}着陆`
+        : `登陆 ${data.name}　·　虚拟方案（无着陆先例）`
       : surface.reason ?? '这颗天体没有可站立的固体表面'
     titleEl.textContent = data.name
     subtitleEl.textContent = data.nameEn ?? ''

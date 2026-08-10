@@ -1,0 +1,582 @@
+{
+  "note": "进入-下降-着陆（EDL）时序。每颗可登陆天体一套，尽可能依据一次真实成功的着陆任务；没有任何着陆先例的天体标 real:false，按该天体的物理条件构造合理方案，界面上会明确标注为虚拟。",
+  "fields": {
+    "basedOn": "依据的真实任务；real 为 false 时是虚拟方案，mission 字段写方案依据",
+    "veilStyle": "plasma = 有大气，进入时高温等离子体致白；dark = 无大气，不存在气动加热，用暗场过渡",
+    "steps[].hold": "该阶段在界面上停留的秒数（演示用的压缩时间，不是真实时长）",
+    "steps[].elapsed": "该阶段在真实任务中距进入/动力下降开始的时刻",
+    "steps[].veil": "遮罩不透明度 0~1",
+    "steps[].swap": "为 true 时在此阶段切换到地表场景（此刻遮罩应当接近全不透明）"
+  },
+  "profiles": {
+    "mars": {
+      "real": true,
+      "basedOn": {
+        "mission": "好奇号",
+        "missionEn": "Curiosity (MSL)",
+        "date": "2012-08-06",
+        "site": "盖尔陨击坑",
+        "method": "空中吊车"
+      },
+      "veilStyle": "plasma",
+      "totalNote": "真实全程约 7 分钟，即所谓「恐怖七分钟」",
+      "steps": [
+        {
+          "phase": "进入大气",
+          "elapsed": "T+0",
+          "altitude": "125 km",
+          "speed": "5.8 km/s",
+          "hold": 3.0,
+          "veil": 0.12,
+          "text": "隔热罩迎风面把二氧化碳压缩到约 2100 °C。此刻地球已经无能为力——单程信号要走 13.8 分钟，成败在发出指令之前就已注定。"
+        },
+        {
+          "phase": "峰值减速",
+          "elapsed": "T+80s",
+          "altitude": "40 km",
+          "speed": "4.0 km/s",
+          "hold": 3.0,
+          "veil": 0.55,
+          "text": "气动减速在这里达到约 15 g 的峰值。探测器抛掉配重块改变质心、让钝头体产生升力，像打方向盘一样主动修正落点。"
+        },
+        {
+          "phase": "超音速开伞",
+          "elapsed": "T+254s",
+          "altitude": "11 km",
+          "speed": "405 m/s（马赫 1.7）",
+          "hold": 3.2,
+          "veil": 0.92,
+          "swap": true,
+          "text": "直径 21.5 m 的伞在超音速下张开。但火星大气太稀薄，伞最多把速度降到约 100 m/s——这就是为什么火星着陆永远不能只靠伞。"
+        },
+        {
+          "phase": "抛隔热罩",
+          "elapsed": "T+278s",
+          "altitude": "8 km",
+          "speed": "125 m/s",
+          "hold": 2.6,
+          "veil": 0.88,
+          "text": "隔热罩脱落，着陆雷达第一次看见地面，开始实时测高测速。"
+        },
+        {
+          "phase": "动力下降",
+          "elapsed": "T+360s",
+          "altitude": "1.6 km",
+          "speed": "100 m/s",
+          "hold": 2.8,
+          "veil": 0.7,
+          "text": "背壳带着伞被抛离，八台反推发动机点火。下降级刻意斜飞一段，避免被抛下的伞砸中自己。"
+        },
+        {
+          "phase": "空中吊车",
+          "elapsed": "T+405s",
+          "altitude": "20 m",
+          "speed": "0.75 m/s",
+          "hold": 3.2,
+          "veil": 0.4,
+          "text": "车太重，气囊扛不住；直接反推又会让尾焰在车底掏出坑、扬起沙尘。于是下降级悬停，用三根尼龙缆把一吨重的车吊下去。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+420s",
+          "altitude": "0",
+          "speed": "0.75 m/s",
+          "hold": 3.0,
+          "veil": 0,
+          "text": "车轮直接落在地面上。缆绳被切断，下降级带着剩余燃料飞离 650 m 外坠毁——它的最后一个任务是别落在自己刚放下的车旁边。"
+        }
+      ]
+    },
+    "moon": {
+      "real": true,
+      "basedOn": {
+        "mission": "阿波罗 11 号",
+        "missionEn": "Apollo 11",
+        "date": "1969-07-20",
+        "site": "静海基地",
+        "method": "全程动力下降（载人）"
+      },
+      "veilStyle": "dark",
+      "totalNote": "从动力下降开始到触地约 12 分钟",
+      "steps": [
+        {
+          "phase": "动力下降开始",
+          "elapsed": "T+0",
+          "altitude": "15.2 km",
+          "speed": "1698 m/s",
+          "hold": 3.0,
+          "veil": 0.15,
+          "text": "月球没有大气，没有隔热罩，也没有伞可用——环月轨道上的 1.7 km/s 必须一克不少地用燃料抵消掉。下降发动机点火，开始长达八分半的减速。"
+        },
+        {
+          "phase": "1202 程序警报",
+          "elapsed": "T+5min",
+          "altitude": "10 km",
+          "speed": "1000 m/s",
+          "hold": 3.4,
+          "veil": 0.45,
+          "text": "制导计算机反复报 1202、1201——它算不过来了。休斯顿判断这是溢出而非故障，喊出「继续」。计算机自己丢掉了低优先级任务，保住了制导。"
+        },
+        {
+          "phase": "高门",
+          "elapsed": "T+8.5min",
+          "altitude": "2.3 km",
+          "speed": "150 m/s",
+          "hold": 3.0,
+          "veil": 0.9,
+          "swap": true,
+          "text": "飞行器抬头转入接近段，着陆点第一次进入舷窗视野。阿姆斯特朗看到自动瞄准的位置是一片布满巨石的陨坑边缘。"
+        },
+        {
+          "phase": "手动接管",
+          "elapsed": "T+11min",
+          "altitude": "150 m",
+          "speed": "20 m/s",
+          "hold": 3.2,
+          "veil": 0.6,
+          "text": "他切到半自动，横向平移越过石块场去找平地。燃料余量播报开始倒数——这是整个任务里唯一一次由人而非程序做的关键决定。"
+        },
+        {
+          "phase": "接触与关机",
+          "elapsed": "T+12min32s",
+          "altitude": "0",
+          "speed": "0.5 m/s",
+          "hold": 3.4,
+          "veil": 0,
+          "text": "着陆腿上的探针触地，蓝灯亮起，发动机立即关机自由落下最后一米——真空里尾焰会从地面反弹烧到发动机。此时燃料只够再飞约 25 秒。"
+        }
+      ]
+    },
+    "venus": {
+      "real": true,
+      "basedOn": {
+        "mission": "金星 13 号",
+        "missionEn": "Venera 13",
+        "date": "1982-03-01",
+        "site": "弗提斯高地以东平原",
+        "method": "气动减速 + 主动抛伞"
+      },
+      "veilStyle": "plasma",
+      "totalNote": "从进入到触地约 62 分钟；着陆后存活 127 分钟",
+      "steps": [
+        {
+          "phase": "进入大气",
+          "elapsed": "T+0",
+          "altitude": "100 km",
+          "speed": "11.2 km/s",
+          "hold": 3.0,
+          "veil": 0.2,
+          "text": "以第二宇宙速度级别扎进金星大气，减速峰值高达数百 g。这是太阳系里最粗暴的一次进入——探测器是个钛合金压力球，发射前还预先冷冻过。"
+        },
+        {
+          "phase": "开伞",
+          "elapsed": "T+2min",
+          "altitude": "62 km",
+          "speed": "50 m/s",
+          "hold": 3.2,
+          "veil": 0.9,
+          "swap": true,
+          "text": "上半球罩弹开，降落伞在硫酸云层中张开。此时外面还是 -10 °C——金星的地狱在下面，不在这里。"
+        },
+        {
+          "phase": "主动抛伞",
+          "elapsed": "T+13min",
+          "altitude": "47 km",
+          "speed": "自由下落",
+          "hold": 3.6,
+          "veil": 0.75,
+          "text": "这是反直觉的一步：**主动把伞扔掉**。大气已经稠密到不需要伞，而挂着伞下降太慢，探测器会在半路就被烤坏。剩下的路靠一个圆盘形气动刹车环慢慢沉下去。"
+        },
+        {
+          "phase": "穿越云底",
+          "elapsed": "T+35min",
+          "altitude": "30 km",
+          "speed": "12 m/s",
+          "hold": 3.0,
+          "veil": 0.5,
+          "text": "云层在这里到底，下面是清澈但昏黄的空气。温度已经升到 200 °C 以上，压力还在指数上升。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+62min",
+          "altitude": "0",
+          "speed": "7.5 m/s",
+          "hold": 3.4,
+          "veil": 0,
+          "text": "落在可压溃的环形缓冲垫上。外面 457 °C、89 个大气压——相当于地球海面下 900 米。它拍下了人类第一批地外行星表面彩照，然后在 127 分钟后被压碎，是所有金星着陆器里活得最久的一个。"
+        }
+      ]
+    },
+    "titan": {
+      "real": true,
+      "basedOn": {
+        "mission": "惠更斯号",
+        "missionEn": "Huygens",
+        "date": "2005-01-14",
+        "site": "阿迪立地区",
+        "method": "纯降落伞"
+      },
+      "veilStyle": "plasma",
+      "totalNote": "伞降全程 2 小时 27 分，外太阳系至今唯一一次着陆",
+      "steps": [
+        {
+          "phase": "进入大气",
+          "elapsed": "T+0",
+          "altitude": "1270 km",
+          "speed": "6.0 km/s",
+          "hold": 3.0,
+          "veil": 0.18,
+          "text": "土卫六的大气极其厚重，顶层比地球高得多，从 1270 km 就开始减速。峰值过载约 13 g。"
+        },
+        {
+          "phase": "引导伞",
+          "elapsed": "T+2min",
+          "altitude": "160 km",
+          "speed": "马赫 1.5",
+          "hold": 3.2,
+          "veil": 0.88,
+          "swap": true,
+          "text": "小引导伞先把后盖拉走，随后 8.3 m 的主伞张开、隔热罩脱落。这里不需要任何发动机——厚大气加上只有地球 1/7 的重力，伞就足够了。"
+        },
+        {
+          "phase": "换小伞",
+          "elapsed": "T+15min",
+          "altitude": "110 km",
+          "speed": "自由下落",
+          "hold": 3.4,
+          "veil": 0.7,
+          "text": "主伞被主动抛掉，换成 3 m 的小伞——理由和金星一样但目的相反：主伞下降太慢，电池撑不到落地。它必须赶时间。"
+        },
+        {
+          "phase": "穿过雾霾",
+          "elapsed": "T+1h50min",
+          "altitude": "20 km",
+          "speed": "6 m/s",
+          "hold": 3.0,
+          "veil": 0.45,
+          "text": "橙色有机雾霾在这里散开，地面第一次显形：干涸的河道网络从明亮的高地流向黑暗的平原。那些河流搬运的不是水，是液态甲烷。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+2h27min",
+          "altitude": "0",
+          "speed": "4.5 m/s",
+          "hold": 3.4,
+          "veil": 0,
+          "text": "落在湿润的、类似沙的地面上，冲击数据显示表面像被雨浸过的软土。它继续工作了 72 分钟，直到卡西尼沉到地平线以下、失去中继。"
+        }
+      ]
+    },
+    "earth": {
+      "real": true,
+      "basedOn": {
+        "mission": "神舟载人飞船返回舱",
+        "missionEn": "Shenzhou return capsule",
+        "date": "典型剖面",
+        "site": "东风着陆场",
+        "method": "伞降 + 着陆反推"
+      },
+      "veilStyle": "plasma",
+      "totalNote": "从再入到落地约 20 分钟",
+      "steps": [
+        {
+          "phase": "再入",
+          "elapsed": "T+0",
+          "altitude": "100 km",
+          "speed": "7.9 km/s",
+          "hold": 3.0,
+          "veil": 0.15,
+          "text": "返回舱调整为大底朝前，用烧蚀材料把动能变成热扔掉。这是所有着陆里速度最高的一次进入。"
+        },
+        {
+          "phase": "黑障",
+          "elapsed": "T+3min",
+          "altitude": "80 km",
+          "speed": "6 km/s",
+          "hold": 3.2,
+          "veil": 0.95,
+          "swap": true,
+          "text": "周围空气被电离成等离子体鞘，无线电完全中断约 4 分钟。地面只能等——这是每次载人返回都要经历的一段静默。"
+        },
+        {
+          "phase": "开伞",
+          "elapsed": "T+15min",
+          "altitude": "10 km",
+          "speed": "200 m/s",
+          "hold": 3.0,
+          "veil": 0.6,
+          "text": "先弹出引导伞和减速伞，再拉出 1200 m² 的主伞，同时抛掉防热大底，露出下面的着陆缓冲发动机。"
+        },
+        {
+          "phase": "着陆反推",
+          "elapsed": "T+20min",
+          "altitude": "1 m",
+          "speed": "8 → 2 m/s",
+          "hold": 3.4,
+          "veil": 0,
+          "text": "伽马射线高度计在离地约 1 m 时触发四台固体反推发动机，在最后一瞬间把速度砍掉四分之三。地球有厚大气，所以这里只需要一次短促点火，而不是火星那样的全程动力下降。"
+        }
+      ]
+    },
+    "mercury": {
+      "real": false,
+      "basedOn": {
+        "mission": "虚拟方案",
+        "missionEn": "hypothetical",
+        "date": null,
+        "site": "卡路里盆地边缘",
+        "method": "全程动力下降",
+        "why": "人类从未在水星着陆，也没有在研的着陆任务。信使号与贝皮科伦坡都只是环绕器。"
+      },
+      "veilStyle": "dark",
+      "totalNote": "以下为按水星物理条件构造的方案，非真实任务",
+      "steps": [
+        {
+          "phase": "为何没人来过",
+          "elapsed": "—",
+          "altitude": "—",
+          "speed": "—",
+          "hold": 3.6,
+          "veil": 0.2,
+          "text": "水星是内太阳系最难抵达的地方：越靠近太阳，引力势阱越深，飞船到达时速度过快，而这里既没有大气可以减速，也没有可用的气动捕获。所需推进剂甚至超过飞往外太阳系。"
+        },
+        {
+          "phase": "环绕制动",
+          "elapsed": "T+0",
+          "altitude": "200 km",
+          "speed": "3.0 km/s",
+          "hold": 3.0,
+          "veil": 0.5,
+          "text": "只能靠发动机把环绕速度全部消掉。信使号为了进入水星轨道用了六次借力飞行、耗时六年半——着陆器还要在此基础上再带一整套下降燃料。"
+        },
+        {
+          "phase": "动力下降",
+          "elapsed": "T+9min",
+          "altitude": "3 km",
+          "speed": "150 m/s",
+          "hold": 3.2,
+          "veil": 0.9,
+          "swap": true,
+          "text": "与月球着陆同构：无大气、纯反推、雷达测高、末端悬停避障。区别在于热环境——正午地表 427 °C，散热器必须始终背对太阳。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+12min",
+          "altitude": "0",
+          "speed": "1 m/s",
+          "hold": 3.2,
+          "veil": 0,
+          "text": "落在布满撞击坑的古老地壳上。这里一个太阳日相当于 176 个地球日，白昼漫长到足以烤穿大多数电子设备。"
+        }
+      ]
+    },
+    "europa": {
+      "real": false,
+      "basedOn": {
+        "mission": "虚拟方案（参考 NASA「欧罗巴着陆器」概念研究）",
+        "missionEn": "hypothetical, after NASA Europa Lander concept",
+        "date": null,
+        "site": "康纳马拉混沌区",
+        "method": "空中吊车式动力下降",
+        "why": "人类从未在木卫二着陆。欧罗巴快船（2024 年发射）是飞掠探测器，不携带着陆器。"
+      },
+      "veilStyle": "dark",
+      "totalNote": "以下为按木卫二物理条件构造的方案，非真实任务",
+      "steps": [
+        {
+          "phase": "辐射带",
+          "elapsed": "—",
+          "altitude": "—",
+          "speed": "—",
+          "hold": 3.6,
+          "veil": 0.2,
+          "text": "真正的敌人不是着陆本身，而是木星的辐射带。木卫二表面每天承受约 540 雷姆——对人类是致死量的数倍，电子设备需要厚重的钛屏蔽舱，这直接限制了任务寿命。"
+        },
+        {
+          "phase": "脱轨制动",
+          "elapsed": "T+0",
+          "altitude": "100 km",
+          "speed": "1.4 km/s",
+          "hold": 3.0,
+          "veil": 0.5,
+          "text": "同样没有大气可用。发动机点火消掉环绕速度，全靠燃料。"
+        },
+        {
+          "phase": "地形识别",
+          "elapsed": "T+8min",
+          "altitude": "2 km",
+          "speed": "80 m/s",
+          "hold": 3.2,
+          "veil": 0.9,
+          "swap": true,
+          "text": "冰壳表面遍布几十米高的冰脊与裂隙，概念研究里必须用激光雷达实时建模自主选点——通信单程 40 多分钟，地面完全来不及介入。"
+        },
+        {
+          "phase": "吊车放下",
+          "elapsed": "T+11min",
+          "altitude": "10 m",
+          "speed": "1 m/s",
+          "hold": 3.2,
+          "veil": 0,
+          "text": "沿用火星验证过的空中吊车，避免尾焰污染即将取样的冰面——这里要找的是冰下海洋渗上来的生物标记物，任何污染都会毁掉结论。"
+        }
+      ]
+    },
+    "io": {
+      "real": false,
+      "basedOn": {
+        "mission": "虚拟方案",
+        "missionEn": "hypothetical",
+        "date": null,
+        "site": "洛基火山口附近",
+        "method": "全程动力下降",
+        "why": "人类从未在木卫一着陆，也没有相关计划——它位于木星辐射带最内层。"
+      },
+      "veilStyle": "dark",
+      "totalNote": "以下为按木卫一物理条件构造的方案，非真实任务",
+      "steps": [
+        {
+          "phase": "最恶劣的环境",
+          "elapsed": "—",
+          "altitude": "—",
+          "speed": "—",
+          "hold": 3.6,
+          "veil": 0.2,
+          "text": "木卫一表面辐射剂量约每天 3600 雷姆，是木卫二的近七倍。任何着陆器在这里都是以小时计寿命的一次性设备。"
+        },
+        {
+          "phase": "动力下降",
+          "elapsed": "T+0",
+          "altitude": "100 km",
+          "speed": "1.7 km/s",
+          "hold": 3.0,
+          "veil": 0.55,
+          "text": "无大气，纯反推。下降途中要避开正在喷发的火山羽流——它们能喷到 300 km 高，远超着陆轨迹。"
+        },
+        {
+          "phase": "选点",
+          "elapsed": "T+9min",
+          "altitude": "1 km",
+          "speed": "60 m/s",
+          "hold": 3.2,
+          "veil": 0.9,
+          "swap": true,
+          "text": "地表被二氧化硫霜和熔岩湖反复重塑，是太阳系里最年轻的表面——没有一处地形能用几十年前的地图来规划。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+11min",
+          "altitude": "0",
+          "speed": "1 m/s",
+          "hold": 3.2,
+          "veil": 0,
+          "text": "落在硫质平原上。脚下几公里就是被木星潮汐揉搓加热的熔融层，这颗卫星的火山活动强度是地球的 25 倍以上。"
+        }
+      ]
+    },
+    "ganymede": {
+      "real": false,
+      "basedOn": {
+        "mission": "虚拟方案（参考 ESA JUICE 任务终局）",
+        "missionEn": "hypothetical, after ESA JUICE",
+        "date": null,
+        "site": "伽利略区",
+        "method": "全程动力下降",
+        "why": "人类从未在木卫三着陆。JUICE 将于 2034 年前后成为首颗环绕木卫三的探测器，但它是轨道器，任务末期只做受控撞击而非软着陆。"
+      },
+      "veilStyle": "dark",
+      "totalNote": "以下为按木卫三物理条件构造的方案，非真实任务",
+      "steps": [
+        {
+          "phase": "唯一有磁场的卫星",
+          "elapsed": "—",
+          "altitude": "—",
+          "speed": "—",
+          "hold": 3.6,
+          "veil": 0.2,
+          "text": "木卫三是太阳系最大的卫星，也是唯一拥有自身磁场的卫星。这层磁场把木星辐射挡掉相当一部分，使它比木卫一、木卫二友善得多。"
+        },
+        {
+          "phase": "脱轨制动",
+          "elapsed": "T+0",
+          "altitude": "150 km",
+          "speed": "1.9 km/s",
+          "hold": 3.0,
+          "veil": 0.55,
+          "text": "无大气，纯反推。它比月球大，需要消掉的速度也更多。"
+        },
+        {
+          "phase": "跨越地形边界",
+          "elapsed": "T+10min",
+          "altitude": "2 km",
+          "speed": "70 m/s",
+          "hold": 3.2,
+          "veil": 0.9,
+          "swap": true,
+          "text": "表面分成两类截然不同的地形：深色的古老撞击区和浅色的沟槽地带。着陆点选在两者交界，一次任务能同时采到两种年龄的地壳。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+12min",
+          "altitude": "0",
+          "speed": "1 m/s",
+          "hold": 3.2,
+          "veil": 0,
+          "text": "落在冰岩混合的地表上。脚下约 150 km 处，可能存在一个比地球所有海洋加起来还大的液态水层。"
+        }
+      ]
+    },
+    "callisto": {
+      "real": false,
+      "basedOn": {
+        "mission": "虚拟方案",
+        "missionEn": "hypothetical",
+        "date": null,
+        "site": "瓦尔哈拉盆地",
+        "method": "全程动力下降",
+        "why": "人类从未在木卫四着陆。但它常被列为木星系最适合建立载人基地的地点。"
+      },
+      "veilStyle": "dark",
+      "totalNote": "以下为按木卫四物理条件构造的方案，非真实任务",
+      "steps": [
+        {
+          "phase": "辐射带之外",
+          "elapsed": "—",
+          "altitude": "—",
+          "speed": "—",
+          "hold": 3.6,
+          "veil": 0.2,
+          "text": "木卫四远在木星最强辐射带之外，剂量只有木卫二的百分之一量级。NASA 早年的载人外行星任务研究就把它选为唯一现实的落脚点。"
+        },
+        {
+          "phase": "脱轨制动",
+          "elapsed": "T+0",
+          "altitude": "150 km",
+          "speed": "1.7 km/s",
+          "hold": 3.0,
+          "veil": 0.55,
+          "text": "无大气，纯反推。这里没有火山、没有构造活动，是一颗四十亿年没怎么变过的死星。"
+        },
+        {
+          "phase": "瓦尔哈拉",
+          "elapsed": "T+10min",
+          "altitude": "2 km",
+          "speed": "70 m/s",
+          "hold": 3.2,
+          "veil": 0.9,
+          "swap": true,
+          "text": "下方是直径约 3800 km 的多环撞击构造——像水面涟漪一样冻结在冰壳上的同心环，是太阳系里最壮观的撞击遗迹之一。"
+        },
+        {
+          "phase": "触地",
+          "elapsed": "T+12min",
+          "altitude": "0",
+          "speed": "1 m/s",
+          "hold": 3.2,
+          "veil": 0,
+          "text": "落在太阳系撞击坑最密集的表面上。这里的阳光只有地球的 3.7%，正午亮度大约相当于地球的黄昏。"
+        }
+      ]
+    }
+  }
+}
