@@ -1,0 +1,25 @@
+.tour-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  display: none;
+}
+
+.tour-transition.is-active {
+  display: block;
+}
+
+.tour-transition-veil {
+  position: absolute;
+  inset: 0;
+  background: #05070d;
+  opacity: 0;
+}
+
+.tour-transition-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}

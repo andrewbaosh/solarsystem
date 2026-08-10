@@ -1,0 +1,127 @@
+{
+  "note": "自动导览脚本。引擎不含任何镜头数值与文案，全部读这里。写内容前先看 schema 段。",
+  "schema": {
+    "chapters[].id": "唯一标识，只在日志里出现",
+    "chapters[].title": "章节列表与播放条上显示的标题",
+    "chapters[].duration": "本章时长，真实秒",
+    "chapters[].camera.frame": "可选。填天体 id 时，path 与 lookAt.offset 都是相对该天体中心的 km，按半径放大倍数换算（离地球 3 个地球半径，在任何尺度模式下都还是 3 个半径）。省略则是日心黄道坐标系的 km，吃行星轨道那条距离压缩曲线。",
+    "chapters[].camera.path": "CatmullRomCurve3 控制点，单位一律 km（铁律 1：数据里不写场景单位）。至少 2 个点；3 个以上才会走出弧线。",
+    "chapters[].camera.lookAt": "{ target: 天体 id, offset: {x,y,z} km }，朝向独立插值到这一点，不做每帧硬 lookAt",
+    "chapters[].camera.easing": "见 src/tour/easing.js。刻意没有 linear；写错名字会落回 easeInOutCubic",
+    "chapters[].sceneState": "进入本章时套用，缺省的字段一律不动。可用：timeSpeed（模拟秒/真实秒）、timePaused、date（ISO）、jd、scaleMode（visual|real）、filters（六组显示开关的子集）、visibleOrbits（天体 id 数组，或 \"all\" / \"none\"）、highlight（天体 id 或 null）",
+    "chapters[].subtitles": "[{ text, in, out }]，in/out 是本章内的秒数",
+    "chapters[].transition": "进入本章时播放的过场：none | flash | starfield。切机位与套用 sceneState 都安排在遮罩最不透明的那一刻"
+  },
+  "chapters": [
+    {
+      "id": "earth-intro",
+      "title": "你脚下的世界",
+      "duration": 45,
+      "transition": "flash",
+      "camera": {
+        "frame": "earth",
+        "easing": "easeOutCubic",
+        "path": [
+          { "x": 120000, "y": 60000, "z": 90000 },
+          { "x": 44000, "y": 30000, "z": 74000 },
+          { "x": -14000, "y": 12000, "z": 38000 },
+          { "x": -21000, "y": 3000, "z": 14000 }
+        ],
+        "lookAt": {
+          "target": "earth",
+          "offset": { "x": 0, "y": 0, "z": 0 }
+        }
+      },
+      "sceneState": {
+        "timeSpeed": 3600,
+        "visibleOrbits": ["earth", "moon"],
+        "highlight": "earth",
+        "filters": {
+          "satellites": true,
+          "asteroidBelt": false,
+          "smallBodies": false
+        }
+      },
+      "subtitles": [
+        { "text": "这是地球。半径 6371 公里，在这个模型里被放大了 60 倍——不放大你根本看不见它。", "in": 1, "out": 10 },
+        { "text": "它每 23 小时 56 分 4 秒转一圈。不是 24 小时：那 4 分钟的差，是地球在自转的同时又沿轨道挪了一点。", "in": 10, "out": 20 },
+        { "text": "明暗交界那条线叫晨昏线。它每秒沿赤道推进 465 米，永远不停。", "in": 20.5, "out": 29 },
+        { "text": "整个人类文明，到目前为止，只离开过这段距离。", "in": 29.5, "out": 37 },
+        { "text": "现在我们去看看第二近的那个世界。", "in": 38, "out": 44.5 }
+      ]
+    },
+    {
+      "id": "mars-arrival",
+      "title": "红色的邻居",
+      "duration": 40,
+      "transition": "starfield",
+      "camera": {
+        "frame": "mars",
+        "easing": "easeInOutQuint",
+        "path": [
+          { "x": -90000, "y": 42000, "z": -60000 },
+          { "x": -46000, "y": 22000, "z": -6000 },
+          { "x": -12000, "y": 7000, "z": 24000 },
+          { "x": 9000, "y": 2500, "z": 15000 }
+        ],
+        "lookAt": {
+          "target": "mars",
+          "offset": { "x": 0, "y": 0, "z": 0 }
+        }
+      },
+      "sceneState": {
+        "timeSpeed": 7200,
+        "visibleOrbits": ["earth", "mars"],
+        "highlight": "mars",
+        "filters": {
+          "satellites": false,
+          "asteroidBelt": false,
+          "smallBodies": false
+        }
+      },
+      "subtitles": [
+        { "text": "火星。半径只有地球的一半，表面积却和地球所有陆地加起来差不多。", "in": 1, "out": 10 },
+        { "text": "它的一天是 24 小时 37 分——太阳系里最接近地球的自转周期。", "in": 10.5, "out": 19 },
+        { "text": "红色来自氧化铁。这颗行星整个表面都在生锈。", "in": 19.5, "out": 27 },
+        { "text": "人类往这里成功送下去过九台机器，失败的次数比这更多。", "in": 28, "out": 39 }
+      ]
+    },
+    {
+      "id": "jupiter-giant",
+      "title": "另一个量级",
+      "duration": 50,
+      "transition": "flash",
+      "camera": {
+        "frame": "jupiter",
+        "easing": "easeInOutSine",
+        "path": [
+          { "x": 130000, "y": 20000, "z": 95000 },
+          { "x": 250000, "y": 65000, "z": 240000 },
+          { "x": 420000, "y": 130000, "z": 520000 },
+          { "x": 560000, "y": 210000, "z": 800000 }
+        ],
+        "lookAt": {
+          "target": "jupiter",
+          "offset": { "x": 0, "y": 0, "z": 0 }
+        }
+      },
+      "sceneState": {
+        "timeSpeed": 21600,
+        "visibleOrbits": ["io", "europa", "ganymede", "callisto"],
+        "highlight": "jupiter",
+        "filters": {
+          "satellites": true,
+          "asteroidBelt": false,
+          "smallBodies": false
+        }
+      },
+      "subtitles": [
+        { "text": "木星。把其余七颗行星全部加起来，还不到它的一半重。", "in": 1, "out": 10 },
+        { "text": "它转得极快，9 小时 56 分一圈，快到把自己甩成了一个椭球。", "in": 10.5, "out": 19.5 },
+        { "text": "镜头正在退开。现在进画面的这四个点，是伽利略 1610 年用自制望远镜看到的四颗卫星。", "in": 20, "out": 31 },
+        { "text": "正是它们绕着木星转这件事，第一次证明了不是所有东西都绕着地球转。", "in": 31.5, "out": 41 },
+        { "text": "从这里往外，太阳系还有四倍远。", "in": 42, "out": 49 }
+      ]
+    }
+  ]
+}

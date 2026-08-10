@@ -122,5 +122,5 @@ export function createHUD({ camera, cameraRig }) {
     })
   }
 
-  return { update, toggleScale }
+  return { update, toggleScale, setScaleMode: startScaleTransition }
 }

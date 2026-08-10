@@ -5,10 +5,13 @@
  * 这样脚本通过就意味着场景里跑的也是同一套结果。
  */
 import * as THREE from 'three'
+import { readFileSync } from 'node:fs'
 
 import planetsData from '../data/planets.json' with { type: 'json' }
 import orbitalElements from '../data/orbital-elements.json' with { type: 'json' }
 import satellitesData from '../data/satellites.json' with { type: 'json' }
+import smallBodiesData from '../data/small-bodies.json' with { type: 'json' }
+import tourData from '../data/tour.json' with { type: 'json' }
 
 import {
   heliocentricAU,
@@ -28,6 +31,7 @@ import {
 } from '../src/bodies/rotation.js'
 import { createBodySystem } from '../src/bodies/bodySystem.js'
 import { toSceneDistance } from '../src/core/scale.js'
+import { EASING_NAMES } from '../src/tour/easing.js'
 
 const DEG = 180 / Math.PI
 let failures = 0
@@ -330,6 +334,80 @@ heading('6. 卫星系统（跑真实 bodySystem）')
     '伽利略卫星轨道面对齐木星赤道面（而非黄道面）',
     jupiterPole.angleTo(new THREE.Vector3(0, 1, 0)) * DEG > 1,
     `轨道面法线偏离黄道法线 ${(jupiterPole.angleTo(new THREE.Vector3(0, 1, 0)) * DEG).toFixed(2)}°（木星转轴倾角 ${jupiter.data.obliquityDeg}°）`,
+  )
+}
+
+// ------------------------------------------------------------------ 导览脚本
+{
+  heading('导览脚本 data/tour.json')
+
+  const knownIds = new Set([
+    ...planetsData.bodies.map((b) => b.id),
+    ...satellitesData.satellites.map((b) => b.id),
+    ...(smallBodiesData.asteroids ?? []).map((b) => b.id),
+    ...(smallBodiesData.comets ?? []).map((b) => b.id),
+  ])
+  const easings = new Set(EASING_NAMES)
+  const transitions = new Set(['none', 'flash', 'starfield'])
+
+  const problems = []
+  const note = (ch, msg) => problems.push(`${ch.id ?? '?'}: ${msg}`)
+
+  for (const ch of tourData.chapters) {
+    if (!ch.id || !ch.title) note(ch, '缺 id 或 title')
+    if (!(ch.duration > 0)) note(ch, 'duration 必须为正')
+    if (ch.transition && !transitions.has(ch.transition)) note(ch, `未知过场 ${ch.transition}`)
+
+    const cam = ch.camera ?? {}
+    const path = cam.path ?? []
+    if (path.length < 2) note(ch, `camera.path 只有 ${path.length} 个控制点，至少要 2 个`)
+    for (const p of path) {
+      if (![p.x, p.y, p.z].every(Number.isFinite)) note(ch, '控制点里有非数字')
+    }
+    if (cam.easing && !easings.has(cam.easing)) note(ch, `未知缓动 ${cam.easing}`)
+    if (cam.frame && !knownIds.has(cam.frame)) note(ch, `camera.frame 指向不存在的天体 ${cam.frame}`)
+    const target = cam.lookAt?.target
+    if (!target) note(ch, '缺 camera.lookAt.target')
+    else if (!knownIds.has(target)) note(ch, `lookAt.target 指向不存在的天体 ${target}`)
+
+    const st = ch.sceneState ?? {}
+    if (Array.isArray(st.visibleOrbits)) {
+      for (const id of st.visibleOrbits) {
+        if (!knownIds.has(id)) note(ch, `visibleOrbits 里有不存在的天体 ${id}`)
+      }
+    }
+    if (st.highlight && !knownIds.has(st.highlight)) note(ch, `highlight 指向不存在的天体 ${st.highlight}`)
+
+    // 字幕：区间合法、不重叠、不超出本章时长
+    let cursor = -Infinity
+    for (const sub of ch.subtitles ?? []) {
+      if (!(sub.out > sub.in)) note(ch, `字幕区间非法 [${sub.in}, ${sub.out}]`)
+      if (sub.in < cursor) note(ch, `字幕与上一句重叠于 ${sub.in}s`)
+      if (sub.out > ch.duration) note(ch, `字幕 ${sub.out}s 超出本章 ${ch.duration}s`)
+      if (!sub.text?.trim()) note(ch, '有空字幕')
+      cursor = sub.out
+    }
+  }
+
+  check(
+    `${tourData.chapters.length} 个章节的结构、缓动名、天体 id 与字幕时序`,
+    problems.length === 0,
+    problems.length ? problems.join('；') : '全部合法',
+  )
+
+  // 引擎不得硬编码天体或文案：源码里出现具体天体 id 就是越界
+  const engineSources = ['camera-director.js', 'tourPlayer.js', 'transitions.js', 'easing.js'].map(
+    (f) => readFileSync(new URL(`../src/tour/${f}`, import.meta.url), 'utf8'),
+  )
+  const leaked = [...knownIds].filter((id) =>
+    engineSources.some((src) => new RegExp(`['"\`]${id}['"\`]`).test(src)),
+  )
+  check('引擎代码里没有硬编码的天体 id', leaked.length === 0, leaked.join(', ') || '干净')
+
+  check(
+    '缓动表里没有 linear（禁止匀速直线运动）',
+    !easings.has('linear'),
+    `可用：${EASING_NAMES.join(', ')}`,
   )
 }
 

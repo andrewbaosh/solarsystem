@@ -291,5 +291,12 @@ export function createBodySystem(scene, { planets, elements, satellites }) {
     }
   }
 
-  return { bodies, update, get, rebuildOrbitLines, star, setVisibility }
+  /** 逐条控制轨道线；谓词由调用方给，引擎不认识任何具体 id */
+  function setOrbitVisibility(isVisible) {
+    for (const body of bodies) {
+      if (body.orbitLine) body.orbitLine.visible = body.group.visible && isVisible(body.data.id)
+    }
+  }
+
+  return { bodies, update, get, rebuildOrbitLines, star, setVisibility, setOrbitVisibility }
 }

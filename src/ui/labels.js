@@ -29,6 +29,8 @@ export function createLabels(bodies, camera) {
   // 唯一可能挡住别人的天体就是恒星，按 type 取，不认具体 id
   const occluders = bodies.filter((b) => b.data.type === 'star')
 
+  let highlightId = null
+
   const worldPos = new THREE.Vector3()
   const camPos = new THREE.Vector3()
   const toBody = new THREE.Vector3()
@@ -76,6 +78,17 @@ export function createLabels(bodies, camera) {
     const candidates = []
     for (const item of items) {
       const { body, el } = item
+
+      // 天体被筛选器或导览关掉时，标签必须跟着消失 ——
+      // 否则会出现「一个名字飘在空处、底下什么都没有」
+      if (!body.group.visible) {
+        if (item.visible) {
+          el.style.display = 'none'
+          item.visible = false
+        }
+        continue
+      }
+
       body.group.getWorldPosition(worldPos)
 
       toBody.subVectors(worldPos, camPos)
@@ -106,8 +119,10 @@ export function createLabels(bodies, camera) {
         }
         continue
       }
-      // 屏幕上越大越优先；同样大小时近的优先
-      candidates.push({ item, x, y: y - screenRadius - GAP, priority: screenRadius * 1000 - distance })
+      // 屏幕上越大越优先；同样大小时近的优先。被导览高亮的那个永远排第一，
+      // 否则「本章的主角」可能因为屏幕上小而被别人挤掉标签
+      const boost = body.data.id === highlightId ? 1e9 : 0
+      candidates.push({ item, x, y: y - screenRadius - GAP, priority: boost + screenRadius * 1000 - distance })
     }
 
     // 按优先级放置，与已放置的重叠就跳过
@@ -136,9 +151,19 @@ export function createLabels(bodies, camera) {
     }
   }
 
+  /** 导览高亮：主角亮起来，其余压暗；传 null 取消 */
+  function setHighlight(id) {
+    if (highlightId === id) return
+    highlightId = id ?? null
+    container.classList.toggle('has-highlight', Boolean(highlightId))
+    for (const item of items) {
+      item.el.classList.toggle('is-highlight', item.body.data.id === highlightId)
+    }
+  }
+
   function setVisible(next) {
     container.style.display = next ? '' : 'none'
   }
 
-  return { update, setVisible }
+  return { update, setVisible, setHighlight }
 }

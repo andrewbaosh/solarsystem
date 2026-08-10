@@ -25,6 +25,9 @@ import edlData from '../data/edl.json'
 import smallBodiesData from '../data/small-bodies.json'
 import { createAsteroidBelt } from './bodies/asteroidBelt.js'
 import { createSmallBodies } from './bodies/smallBodies.js'
+import { createTour } from './tour/tourPlayer.js'
+import { createTourUI } from './ui/tourUI.js'
+import tourData from '../data/tour.json'
 
 // 首屏加载界面要在任何资源开始加载之前挂上，否则进度会从中途开始
 createLoadingScreen({ manager: THREE.DefaultLoadingManager })
@@ -138,7 +141,97 @@ const landing = createLanding({
   },
 })
 
+// ---- 自动导览 --------------------------------------------------------------
+
+/**
+ * 导览引擎与场景之间的适配层。
+ *
+ * 引擎（src/tour/）只认识这个接口，不认识 bodySystem / filters / time /
+ * scale 这些具体模块，也就无从硬编码任何天体。反过来，脚本里想加一种
+ * 新的场景状态，改动也只落在这一个对象上。
+ */
+const tourScene = {
+  resolveBody: (id) => bodySystem.get(id) ?? smallBodies.get(id),
+
+  setTimeSpeed: (v) => time.setSpeed(v),
+  setPaused: (v) => time.setPaused(v),
+  setDate: (iso) => time.setDate(new Date(iso)),
+  setJD: (jd) => time.setJD(jd),
+  setScaleMode: (mode) => hud.setScaleMode(mode),
+  setFilters: (partial) => {
+    for (const [id, value] of Object.entries(partial)) filters.set(id, value)
+  },
+  setVisibleOrbits: (spec) => {
+    // "all" / "none" / id 数组 —— 判定写在这里，引擎只负责把字段传过来
+    const pred =
+      spec === 'all'
+        ? () => true
+        : spec === 'none' || !spec
+          ? () => false
+          : (id) => spec.includes(id)
+    bodySystem.setOrbitVisibility(pred)
+    smallBodies.setOrbitVisibility(pred)
+  },
+  setHighlight: (id) => labels.setHighlight(id),
+
+  /** 导览开始前存一份现场，退出时原样还回去 */
+  snapshot: () => ({
+    speed: time.getSpeed(),
+    paused: time.isPaused(),
+    filters: filters.state(),
+    scaleMode: scale.getScaleMode(),
+  }),
+
+  onEnter: () => {
+    deselect() // 导览自己管镜头，跟随焦点会和脚本抢
+    cameraRig.cancelFlight()
+  },
+
+  onExit: (snapshot) => {
+    labels.setHighlight(null)
+    if (!snapshot) return
+    time.setSpeed(snapshot.speed)
+    time.setPaused(snapshot.paused)
+    hud.setScaleMode(snapshot.scaleMode)
+    // 重新套一遍筛选器：被章节改过的轨道线可见性也随之复原
+    for (const [id, value] of Object.entries(snapshot.filters)) filters.set(id, value)
+    filters.reapply()
+  },
+
+  /** 用户接管：把 OrbitControls 的目标对到当前注视点，转起来才不会跳 */
+  onTakeOver: (lookPoint) => {
+    cameraRig.setFocus(null)
+    cameraRig.controls.target.copy(lookPoint)
+  },
+}
+
+const tourUI = createTourUI({
+  chapters: tourData.chapters,
+  handlers: {
+    onStart: () => tour.start(),
+    onExit: () => tour.stop(),
+    onTogglePlay: () => tour.togglePlay(),
+    onPrev: () => tour.prev(),
+    onNext: () => tour.next(),
+    onGoto: (i) => tour.goto(i),
+    onResume: () => tour.resume(),
+  },
+})
+
+const tour = createTour({
+  chapters: tourData.chapters,
+  camera,
+  scene: tourScene,
+  ui: tourUI,
+})
+
+// 播放中任何一次拖动或滚轮都立刻交出相机控制权，旁白与字幕照常走
+for (const type of ['pointerdown', 'wheel']) {
+  renderer.domElement.addEventListener(type, () => tour.takeOver(), { passive: true })
+}
+
 function select(body) {
+  if (tour.isActive()) return // 导览进行中不响应拾取，点击的含义是「接管镜头」
   if (landing.getMode() === 'surface' || landing.isTransitioning()) return // 地表模式不响应轨道场景的拾取
   if (!body) return deselect()
   cameraRig.flyTo(body)
@@ -174,6 +267,29 @@ window.addEventListener('keydown', (e) => {
   if (timeControls.isEditing()) return
   // 地表模式下 WASD / 空格属于第一人称控制，不能被轨道场景的快捷键抢走
   if (landing.getMode() === 'surface' && e.code !== 'Escape') return
+
+  // 导览进行中，几个键的含义要改到导览上，否则会去操作被隐藏起来的时间条
+  if (tour.isActive()) {
+    switch (e.code) {
+      case 'Escape':
+        tour.stop()
+        return
+      case 'Space':
+        e.preventDefault()
+        tour.togglePlay()
+        return
+      case 'BracketLeft':
+        tour.prev()
+        return
+      case 'BracketRight':
+        tour.next()
+        return
+      case 'Enter':
+        tour.resume()
+        return
+    }
+    return // 其余快捷键在导览里一律不响应
+  }
 
   switch (e.code) {
     case 'Escape':
@@ -238,12 +354,14 @@ if (import.meta.env.DEV) {
   window.__solar = {
     scene, camera, renderer, cameraRig, bodySystem, time, scale, composer, sunLight,
     hud, infoPanel, timeControls, select, deselect, landing, surfaceHud, asteroidBelt, smallBodies,
+    tour, tourScene, labels, filters,
   }
 }
 
 // ---- 主循环 --------------------------------------------------------------
 
 const clock = new THREE.Clock()
+const tourLookPoint = new THREE.Vector3()
 
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.1) // 掉帧/切标签页时不要让时间跳变
@@ -269,7 +387,14 @@ renderer.setAnimationLoop(() => {
       }
       smallBodies.update(time.getJD())
     }
-    cameraRig.update(dt)
+    tour.update(dt)
+    if (tour.isDrivingCamera()) {
+      // 脚本在开镜头。仍然把 OrbitControls 的目标钉在注视点上 ——
+      // 这样用户任何时刻伸手接管，转动都是绕着当前看的东西转，不会跳。
+      cameraRig.controls.target.copy(tour.getLookPoint(tourLookPoint))
+    } else {
+      cameraRig.update(dt)
+    }
     hud.update(dt) // 尺度过渡动画在 HUD 里推进
     timeControls.update()
     if (labelsOn && !onSurface) labels.update()

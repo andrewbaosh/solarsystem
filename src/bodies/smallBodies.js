@@ -159,5 +159,11 @@ export function createSmallBodies(scene, data) {
     }
   }
 
-  return { bodies, update, rebuildOrbitLines, get, setVisible }
+  function setOrbitVisibility(isVisible) {
+    for (const b of bodies) {
+      b.orbitLine.visible = b.group.visible && isVisible(b.data.id)
+    }
+  }
+
+  return { bodies, update, rebuildOrbitLines, get, setVisible, setOrbitVisibility }
 }

@@ -44,3 +44,22 @@
   margin-top: 2px;
   background: linear-gradient(to bottom, rgba(180, 205, 245, 0.55), rgba(180, 205, 245, 0));
 }
+
+/* ---- 导览高亮 ---- */
+.labels.has-highlight .label {
+  opacity: 0.35;
+  transition: opacity 0.5s ease;
+}
+
+.labels.has-highlight .label.is-highlight {
+  opacity: 1;
+}
+
+.label.is-highlight .label-cn {
+  color: #fff;
+  text-shadow: 0 0 14px rgba(140, 190, 255, 0.9);
+}
+
+.label.is-highlight .label-en {
+  color: #9dc4ff;
+}

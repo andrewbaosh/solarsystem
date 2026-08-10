@@ -62,5 +62,10 @@ export function createFilters({ onChange, initial = {} }) {
     onChange({ ...state })
   }
 
-  return { state: () => ({ ...state }), set, element: panel }
+  /** 原样重播一次当前状态：导览退出后用它把可见性收拾回筛选器说了算 */
+  function reapply() {
+    onChange({ ...state })
+  }
+
+  return { state: () => ({ ...state }), set, reapply, element: panel }
 }
