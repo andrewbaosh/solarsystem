@@ -270,19 +270,29 @@ export function createSurfaceScene({
    * 瞄点取在着陆器与地面之间偏下的位置，于是着陆器高悬时位于画面上方
    * （下方留给 EDL 说明面板），触地时自然回到画面中心。
    */
+  /**
+   * 追机位：相机**跟着飞行器一起下降**，始终保持大致固定的斜距。
+   *
+   * 之前相机钉在地面附近，飞行器在 300 m 高时只剩一两个像素 —— 那不叫跟拍。
+   * 现在相机悬在飞行器侧上方随它落下，全程都能看清机器；因为相机略高于飞行器
+   * 且朝下看，下方的地面也一直在画面里。
+   */
+  // 伞打开时伞冠在飞行器上方约 20 m，机位要相应拉远抬高才装得下
+  let chuteOut = false
+  const chaseDist = () => chase.dist * (chuteOut ? 1.85 : 1)
+
   function placeChaseCamera(landerY) {
-    const above = Math.max(0, landerY - groundY)
-    const x = landingX + Math.sin(chaseAngle) * chase.dist
-    const z = landingZ + Math.cos(chaseAngle) * chase.dist
+    const d = chaseDist()
+    const x = landingX + Math.sin(chaseAngle) * d
+    const z = landingZ + Math.cos(chaseAngle) * d
     const terrainY = terrain.heightAt(x, z)
-    // 相机跟着抬升但慢于着陆器，于是始终能同时看到机器和下方的地面
-    camera.position.set(x, Math.max(terrainY + 2.5, groundY + above * 0.55 + chase.height), z)
+    camera.position.set(x, Math.max(terrainY + 2.5, landerY + chase.height + (chuteOut ? 13 : 0)), z)
   }
 
-  /** 瞄点略低于着陆器本身，让它稳定地落在画面中偏上的位置 */
+  /** 瞄点略低于飞行器，让它稳定落在画面中偏上的位置，下方留给说明面板 */
   function chaseAimY(landerY) {
-    const above = Math.max(0, landerY - groundY)
-    return landerY - above * 0.1 - 0.5
+    // 开伞时把瞄点抬到飞行器与伞冠之间，两者一起入画
+    return landerY + (chuteOut ? 9 : -chaseDist() * 0.16)
   }
 
   /** 由 EDL 时序驱动：设置着陆器当前的下降状态 */
@@ -295,7 +305,9 @@ export function createSurfaceScene({
     // 所以要把整体抬高一个缆绳长度，否则车会沉到地下去
     lander.root.position.y = groundY + y + (lander.tetherDropAt?.(tether) ?? 0)
 
-    lander.setParachute((state.chute ?? 0) > 0.5)
+    lander.setShell((state.shell ?? 0) > 0.5, state.heat ?? 0)
+    chuteOut = (state.chute ?? 0) > 0.5
+    lander.setParachute(chuteOut)
     lander.setPlume((state.plume ?? 0) > 0.5, 0.7 + (state.plume ?? 0) * 0.5)
     lander.setTether(tether)
 

@@ -360,6 +360,47 @@ function createParachute(color = 0xe8e4dc) {
   return g
 }
 
+// ---- 气动外壳 -------------------------------------------------------------
+
+/**
+ * 进入大气时探测器包在气动外壳里：下方是钝头隔热大底，上方是后盖。
+ * 没有这一层的话，「125 km、5.8 km/s、隔热罩 2100 °C」那几步会直接看到裸车，
+ * 与解说自相矛盾。无大气天体不会用到它。
+ */
+function createAeroshell(size = 2.4) {
+  const g = new THREE.Group()
+  const shellMat = new THREE.MeshStandardMaterial({
+    color: 0x8a7f72,
+    roughness: 0.75,
+    metalness: 0.25,
+  })
+  // 钝头大底：迎风面，被加热到发亮
+  const heatShield = new THREE.Mesh(
+    new THREE.SphereGeometry(size, 24, 12, 0, Math.PI * 2, Math.PI * 0.62, Math.PI * 0.38),
+    new THREE.MeshStandardMaterial({
+      color: 0x4a3128,
+      roughness: 0.55,
+      metalness: 0.2,
+      emissive: new THREE.Color(0xff6a20),
+      emissiveIntensity: 0.0,
+    }),
+  )
+  heatShield.position.y = size * 0.55
+  heatShield.castShadow = true
+  g.add(heatShield)
+
+  // 后盖：截锥
+  const backshell = new THREE.Mesh(
+    new THREE.CylinderGeometry(size * 0.42, size * 0.98, size * 0.72, 24),
+    shellMat,
+  )
+  backshell.position.y = size * 0.92
+  backshell.castShadow = true
+  g.add(backshell)
+
+  return { group: g, heatShield }
+}
+
 // ---- 发动机尾焰 -----------------------------------------------------------
 
 function createPlume() {
@@ -404,19 +445,27 @@ export function createLander(type = 'generic', options = {}) {
    * 有官方模型时用官方模型替换程序化外形。
    * 先把程序化版本挂上去、再异步替换：网络慢也不会出现空场景。
    */
+  // 官方模型是异步替换进来的，setShell 需要知道当前到底是谁在显示
+  let loadedModel = null
+  let modelReplaced = false
+
   if (options.model && gltfLoader) {
     options.onModelLoadStart?.()
     loadModel(options.model, options.modelHeight).then((model) => {
       options.onModelSettled?.()
       if (!model) return
+      loadedModel = model
       if (built.parts?.rover) {
         // 空中吊车：只换车，下降级与缆绳仍是程序化的
         built.parts.rover.clear()
         built.parts.rover.add(model)
       } else {
         built.group.visible = false
+        modelReplaced = true
         root.add(model)
       }
+      // 模型可能在外壳仍然罩着时才加载完，这里跟随当前外壳状态
+      if (aeroshell.group.visible) model.visible = false
       options.onModelLoaded?.(model)
     })
   }
@@ -429,6 +478,10 @@ export function createLander(type = 'generic', options = {}) {
   plume.visible = false
   plume.position.y = built.parts?.stage ? 0 : 0.6
   root.add(plume)
+
+  const aeroshell = createAeroshell(options.shellSize ?? Math.max(2.0, built.height * 0.55))
+  aeroshell.group.visible = false
+  root.add(aeroshell.group)
 
   // 缆绳一旦切断就不能再被 setTether 重新点亮 —— 时序每帧都会调 setTether，
   // 没有这个标志的话，飞离动画结束后缆绳会重新挂回天上
@@ -445,6 +498,17 @@ export function createLander(type = 'generic', options = {}) {
     setPlume(visible, scale = 1) {
       plume.visible = visible
       plume.scale.setScalar(scale)
+    },
+
+    /**
+     * 气动外壳。包在里面时本体不可见 —— 真实的进入段本来就看不到探测器。
+     * heat 控制大底的受热发光强度。
+     */
+    setShell(visible, heat = 0) {
+      aeroshell.group.visible = visible
+      aeroshell.heatShield.material.emissiveIntensity = heat * 2.2
+      built.group.visible = !visible && !modelReplaced
+      if (loadedModel) loadedModel.visible = !visible
     },
     /** 空中吊车专用：0 = 收拢，1 = 完全放下（约 7.5 m） */
     setTether(t) {

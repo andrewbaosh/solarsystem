@@ -19,6 +19,8 @@ const EXIT_HOLD = 0.2
 const EXIT_VEIL_OUT = 1.0
 /** 触地到镜头交接之间的停留，单位秒 */
 const TOUCHDOWN_HOLD = 2.0
+/** 换景遮罩：相机扎向天体、遮罩升满的时长 */
+const WARP_IN = 0.85
 
 export function createLanding({
   renderer,
@@ -36,6 +38,7 @@ export function createLanding({
   let mode = 'orbit' // 'orbit' | 'surface'
   let surface = null
   let exitPhase = null // 返回轨道用的简单遮罩时序
+  let warp = null // 换景遮罩，时序开始前的那一小段
   let touchdownHold = 0
 
   function isLandable(body) {
@@ -78,6 +81,9 @@ export function createLanding({
     surface.setDescentState({
       y: lerp('y'),
       tether: lerp('tether'),
+      heat: lerp('heat'),
+      // 开关量不插值，取当前阶段的值
+      shell: a.shell ?? 0,
       chute: a.chute ?? 0,
       plume: a.plume ?? 0,
     })
@@ -89,20 +95,21 @@ export function createLanding({
     surface = null
   }
 
+  /**
+   * 进入着陆。
+   *
+   * 场景切换放在时序**开始之前**：先用一段短促的遮罩盖住换景，
+   * 然后从第一个阶段起就已经是第三人称跟拍着陆器了 ——
+   * 整个下降过程都看得见机器，而不是前半段还在轨道上看行星。
+   */
   function enter(body) {
-    if (exitPhase || sequence.isRunning() || mode === 'surface' || !isLandable(body)) return
+    if (exitPhase || warp || sequence.isRunning() || mode === 'surface' || !isLandable(body)) return
 
     touchdownHold = 0
     sequence.setTint(body.data.surface.sky?.horizon ?? '#ffffff')
-    const started = sequence.start(body.data.id, edlProfiles, () => buildSurface(body))
-    if (!started) return
-
-    // 相机同步向天体推进，时序前半段仍然是轨道视角
-    const profile = edlProfiles[body.data.id]
-    const untilSwap = profile.steps
-      .slice(0, Math.max(1, profile.steps.findIndex((s) => s.swap) + 1))
-      .reduce((sum, s) => sum + s.hold, 0)
-    cameraRig.flyTo(body, { distanceFactor: 1.12, duration: untilSwap })
+    sequence.prepare(body.data.id, edlProfiles)
+    warp = { t: 0, body }
+    cameraRig.flyTo(body, { distanceFactor: 1.12, duration: WARP_IN })
   }
 
   function exit() {
@@ -118,6 +125,19 @@ export function createLanding({
   }
 
   function update(dt) {
+    // 换景：遮罩升满 → 建好地表场景 → 交给时序，此后全程第三人称
+    if (warp) {
+      warp.t += dt
+      sequence.setVeilOpacity(Math.min(1, warp.t / WARP_IN))
+      if (warp.t >= WARP_IN) {
+        buildSurface(warp.body)
+        sequence.begin()
+        syncDescent() // 立刻摆好第一帧的着陆器姿态，避免闪一下默认状态
+        warp = null
+      }
+      return
+    }
+
     sequence.update(dt)
     syncDescent()
 

@@ -50,8 +50,6 @@ export function createEdlSequence({ onSkip }) {
   let index = -1
   let elapsed = 0
   let running = false
-  let onSwap = null
-  let swapped = false
 
   function renderSource() {
     const { basedOn, real } = profile
@@ -83,20 +81,26 @@ export function createEdlSequence({ onSkip }) {
       .join('')
   }
 
-  function start(bodyId, profiles, swapCallback) {
+  /**
+   * 装载剖面并渲染第一个阶段，但**不启动计时**。
+   * 调用方先用遮罩把换景盖掉，等地表场景建好再 begin()。
+   */
+  function prepare(bodyId, profiles) {
     profile = profiles[bodyId]
     if (!profile) return false
-
-    onSwap = swapCallback
-    swapped = false
     index = 0
     elapsed = 0
-    running = true
-
+    running = false
     veil.className = `edl-veil style-${profile.veilStyle ?? 'plasma'}`
-    veil.style.opacity = '0'
     renderSource()
     renderStep()
+    return true
+  }
+
+  /** 正式开始推进时序 */
+  function begin() {
+    if (!profile) return false
+    running = true
     panel.classList.add('is-visible')
     return true
   }
@@ -117,12 +121,6 @@ export function createEdlSequence({ onSkip }) {
     const to = next ? next.veil ?? 0 : 0
     veil.style.opacity = String(from + (to - from) * t)
 
-    // 遮罩接近全不透明的这一步切换场景，切换本身看不见
-    if (!swapped && step.swap && t > 0.55) {
-      swapped = true
-      onSwap?.()
-    }
-
     if (t >= 1) {
       if (index >= profile.steps.length - 1) return finish()
       index++
@@ -135,11 +133,6 @@ export function createEdlSequence({ onSkip }) {
     running = false
     veil.style.opacity = '0'
     panel.classList.remove('is-visible')
-    // 万一时序里没标 swap，兜底切换，避免卡在轨道场景
-    if (!swapped) {
-      swapped = true
-      onSwap?.()
-    }
   }
 
   /** 跳过：立即完成剩余阶段 */
@@ -180,5 +173,5 @@ export function createEdlSequence({ onSkip }) {
     veil.style.setProperty('--entry-tint', tint)
   }
 
-  return { start, update, skip, finish, isRunning, getProgress, setVeilOpacity, setTint, fadeOut }
+  return { prepare, begin, update, skip, finish, isRunning, getProgress, setVeilOpacity, setTint, fadeOut }
 }
