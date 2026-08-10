@@ -45,6 +45,21 @@ function row(key, value) {
 
 /** 轨道要素 → 面板要显示的几个量 */
 function orbitalSummary(body, elements, jd) {
+  // 小天体（小行星 / 彗星 / 星际天体）用的是彗星式要素，单独一条路
+  if (body.data.tp !== undefined) {
+    const d = body.data
+    const a = d.a ?? d.q / (1 - d.e)
+    return {
+      cometary: true,
+      hyperbolic: d.e > 1,
+      periodDays: d.e < 1 ? 365.25 * Math.pow(a, 1.5) : NaN,
+      eccentricity: d.e,
+      semiMajorKm: a * AU_KM,
+      perihelionKm: (d.q ?? a * (1 - d.e)) * AU_KM,
+      inclination: d.i,
+      distanceLabel: '到太阳的平均距离',
+    }
+  }
   if (body.kind === 'satellite') {
     const data = body.data
     const periodDays = data.L[1] ? 360 / data.L[1] : NaN
@@ -168,11 +183,20 @@ export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLa
       ? edl?.real
         ? `登陆 ${data.name}　·　复现${edl.basedOn.mission}着陆`
         : `登陆 ${data.name}　·　虚拟方案（无着陆先例）`
-      : surface.reason ?? '这颗天体没有可站立的固体表面'
+      : (surface.reason ??
+        (body.kind === 'comet' || body.kind === 'interstellar'
+          ? '彗核只有几公里且在剧烈挥发，本项目未建立其地表场景'
+          : '本项目尚未为该天体建立地表场景'))
     titleEl.textContent = data.name
     subtitleEl.textContent = data.nameEn ?? ''
+    const KIND_LABEL = { asteroid: '小行星', comet: '彗星', interstellar: '星际天体' }
     kindEl.textContent =
-      body.kind === 'satellite' ? `${body.parent.data.name}的卫星` : data.type === 'star' ? '恒星' : '行星'
+      KIND_LABEL[body.kind] ??
+      (body.kind === 'satellite'
+        ? `${body.parent.data.name}的卫星`
+        : data.type === 'star'
+          ? '恒星'
+          : '行星')
 
     const orbit = orbitalSummary(body, elements, jd)
     const physical = [
@@ -184,7 +208,20 @@ export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLa
       data.surfaceTempC ? row('表面温度', formatTemperature(data.surfaceTempC, data.surfaceTempNote)) : '',
     ].join('')
 
-    const orbital = orbit
+    const orbital = orbit?.cometary
+      ? [
+          orbit.hyperbolic
+            ? row('轨道类型', '双曲线 —— 不属于太阳系，绕过太阳后永远离开', 'hud-warn')
+            : row('公转周期', formatDuration(orbit.periodDays)),
+          row('轨道离心率', `${orbit.eccentricity.toFixed(4)}${orbit.hyperbolic ? '（>1）' : ''}`),
+          row('轨道倾角', `${orbit.inclination.toFixed(2)}°${orbit.inclination > 90 ? '　逆行' : ''}`),
+          row('近日距', `${formatNumber(orbit.perihelionKm, 3)} km`),
+          orbit.hyperbolic ? '' : row(orbit.distanceLabel, `${formatNumber(orbit.semiMajorKm, 3)} km`),
+          data.rotationPeriodHours !== undefined
+            ? row('自转周期', formatDuration(data.rotationPeriodHours / 24))
+            : '',
+        ].join('')
+      : orbit
       ? [
           row('公转周期', formatDuration(orbit.periodDays)),
           row('自转周期', formatDuration(data.rotationPeriodHours / 24)),
@@ -194,8 +231,9 @@ export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLa
         ].join('')
       : `<div class="timeline-empty">该天体位于坐标原点，没有可展示的轨道要素。</div>`
 
-    const narrative = data.narrative ?? ''
+    const narrative = data.narrative ?? data.note ?? ''
     const isPlaceholder = narrative.startsWith('【占位')
+    // 小天体没有大气/温度这些字段，相应分区自动省略
 
     bodyEl.innerHTML = `
       <div class="info-section">
@@ -205,10 +243,11 @@ export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLa
         <div class="info-section-title">物理参数</div>
         ${physical}
       </div>
+      ${data.atmosphere_composition || data.atmosphereNote ? `
       <div class="info-section">
         <div class="info-section-title">大气成分</div>
         ${renderAtmosphere(data)}
-      </div>
+      </div>` : ''}
       <div class="info-section">
         <div class="info-section-title">轨道参数</div>
         ${orbital}

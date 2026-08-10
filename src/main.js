@@ -21,6 +21,9 @@ import { preloadLanderModel } from './scenes/landers.js'
 import { createLanding } from './scenes/landing.js'
 import missionsData from '../data/missions.json'
 import edlData from '../data/edl.json'
+import smallBodiesData from '../data/small-bodies.json'
+import { createAsteroidBelt } from './bodies/asteroidBelt.js'
+import { createSmallBodies } from './bodies/smallBodies.js'
 
 // 首屏加载界面要在任何资源开始加载之前挂上，否则进度会从中途开始
 createLoadingScreen({ manager: THREE.DefaultLoadingManager })
@@ -58,9 +61,16 @@ sunLight.shadow.camera.far = 600
 sunLight.shadow.bias = -0.0005
 bodySystem.get('sun').group.add(sunLight)
 
+// 小行星带 + 命名小行星 + 彗星与星际天体
+const asteroidBelt = createAsteroidBelt(scene, smallBodiesData.belt)
+const smallBodies = createSmallBodies(scene, smallBodiesData)
+let smallBodiesOn = true
+
 const { composer, setSize: setComposerSize } = createComposer(renderer, scene, camera)
 const hud = createHUD({ camera, cameraRig })
-const labels = createLabels(bodySystem.bodies, camera)
+// 小天体一并纳入标签与拾取，否则看得见却点不开
+const pickable = [...bodySystem.bodies, ...smallBodies.bodies]
+const labels = createLabels(pickable, camera)
 let labelsOn = true
 
 handleResize(renderer, camera)
@@ -71,12 +81,16 @@ window.addEventListener('resize', () => {
 
 // 起始时间：当前真实时刻（时间源仍然是 J2000 儒略日）
 time.setDate(new Date())
-// 默认 1 月/秒：全景视角下能看见的是外行星，1 天/秒时木星每秒只走 0.4 像素，
-// 看上去像静止的。1 月/秒时木星 2.5°/秒、地球 12 秒一圈，运动才是肉眼可辨的。
-time.setSpeed(86400 * 30) // 1 月/秒
+// 默认 1 天/秒。注意全景视角下外行星在这个倍率里每秒只走零点几个像素，
+// 看上去接近静止，要看出公转得按 [ ] 调快或先聚焦到内行星。
+time.setSpeed(86400) // 1 天/秒
 
 // 先把天体摆到位，这样第一帧的聚焦目标就是正确的
 bodySystem.update(time.getJD())
+asteroidBelt.update(time.getJD() - time.J2000_JD, 1)
+smallBodies.update(time.getJD())
+smallBodies.rebuildOrbitLines(time.getJD())
+let lastSmallBodyRevision = scale.getScaleRevision()
 cameraRig.setFocus(bodySystem.get('sun'), { smooth: false })
 
 // ---- 选取与信息面板 --------------------------------------------------------
@@ -131,7 +145,7 @@ function deselect() {
 createSelection({
   domElement: renderer.domElement,
   camera,
-  bodySystem,
+  bodySystem: { bodies: pickable },
   onSelect: select, // 点空会传 null，走 deselect
 })
 
@@ -175,6 +189,11 @@ window.addEventListener('keydown', (e) => {
     case 'KeyM':
       hud.toggleScale() // 走过渡动画，不是瞬切
       return
+    case 'KeyK':
+      smallBodiesOn = !smallBodiesOn
+      asteroidBelt.setVisible(smallBodiesOn)
+      smallBodies.setVisible(smallBodiesOn)
+      return
     case 'KeyL':
       labelsOn = !labelsOn
       labels.setVisible(labelsOn)
@@ -194,7 +213,7 @@ window.addEventListener('keydown', (e) => {
 if (import.meta.env.DEV) {
   window.__solar = {
     scene, camera, renderer, cameraRig, bodySystem, time, scale, composer, sunLight,
-    hud, infoPanel, timeControls, select, deselect, landing, surfaceHud,
+    hud, infoPanel, timeControls, select, deselect, landing, surfaceHud, asteroidBelt, smallBodies,
   }
 }
 
@@ -213,6 +232,16 @@ renderer.setAnimationLoop(() => {
   // 转场期间两套场景都要继续推进：遮罩后面正在换景，停下来会露馅
   if (!onSurface || landing.isTransitioning()) {
     bodySystem.update(time.getJD())
+    if (smallBodiesOn) {
+      const revision = scale.getScaleRevision()
+      if (revision !== lastSmallBodyRevision) {
+        smallBodies.rebuildOrbitLines(time.getJD())
+        lastSmallBodyRevision = revision
+      }
+      const days = time.getJD() - time.J2000_JD
+      asteroidBelt.update(days, scale.getRadiusExaggeration() / 60)
+      smallBodies.update(time.getJD())
+    }
     cameraRig.update(dt)
     hud.update(dt) // 尺度过渡动画在 HUD 里推进
     timeControls.update()

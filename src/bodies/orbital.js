@@ -171,6 +171,96 @@ export function sampleSatelliteOrbitKm(sat, jd, segments = 256) {
   return sampleOrbit(satelliteElementsAt(sat, daysSinceJ2000(jd)), segments)
 }
 
+/** 高斯引力常数，rad·AU^1.5/day —— 由半长轴直接算平均运动 */
+export const GAUSS_K = 0.01720209895
+
+/**
+ * 双曲线开普勒方程 M = e·sinh(H) − H，牛顿迭代。
+ *
+ * 星际天体（1I/2I/3I）的偏心率都大于 1，轨道是双曲线：它们从星际空间来，
+ * 绕太阳拐一个弯就永远离开，不存在周期。椭圆那套解法在这里完全不适用。
+ */
+export function solveKeplerHyperbolic(M, e, tolerance = KEPLER_TOLERANCE, maxIterations = 100) {
+  // 初值：大 M 时用对数近似，否则从 M/(e−1) 起步，避免 sinh 溢出
+  let H = Math.abs(M) > 6 ? Math.sign(M) * Math.log((2 * Math.abs(M)) / e + 1.8) : M / (e - 1)
+  let iterations = 0
+
+  for (; iterations < maxIterations; iterations++) {
+    const f = e * Math.sinh(H) - H - M
+    const df = e * Math.cosh(H) - 1
+    const dH = -f / df
+    H += dH
+    if (Math.abs(dH) <= tolerance) {
+      iterations++
+      break
+    }
+  }
+
+  const residual = Math.abs(e * Math.sinh(H) - H - M)
+  return { H, iterations, residual, converged: residual <= tolerance }
+}
+
+/**
+ * 彗星式轨道要素 → 日心黄道坐标（AU）。
+ *
+ * 与行星用的 Standish 表不同，小天体的标准要素是
+ * {e, a 或 q, i, Ω(om), ω(w), 近日点时刻 tp}，相位由「距近日点多久」给出。
+ * 椭圆（e<1）与双曲线（e>1）在这里统一处理。
+ */
+export function cometaryPosition(el, jd, out = {}) {
+  const e = el.e
+  // 双曲线的 a 为负；只给了 q 时由 q = a(1−e) 反解
+  const a = el.a ?? el.q / (1 - e)
+  const absA = Math.abs(a)
+  const n = GAUSS_K / Math.sqrt(absA * absA * absA) // rad/day
+  const dt = jd - el.tp
+
+  let xp
+  let yp
+  let solution
+  if (e < 1) {
+    const M = normalizeDeg(((n * dt) / DEG) % 360) * DEG
+    solution = solveKepler(M, e)
+    xp = a * (Math.cos(solution.E) - e)
+    yp = a * Math.sqrt(1 - e * e) * Math.sin(solution.E)
+  } else {
+    const M = n * dt
+    solution = solveKeplerHyperbolic(M, e)
+    xp = a * (Math.cosh(solution.H) - e)
+    yp = -a * Math.sqrt(e * e - 1) * Math.sinh(solution.H)
+  }
+
+  // 复用行星那套旋转：这里的 peri 传 ϖ = Ω + ω，与 node 相减正好还原 ω
+  orbitalPlaneToEcliptic(xp, yp, { peri: el.om + el.w, node: el.om, I: el.i }, out)
+  out.solution = solution
+  out.radiusAU = Math.hypot(out.x, out.y, out.z)
+  return out
+}
+
+/** 采样彗星/星际天体的轨迹用于画线 */
+export function sampleCometaryOrbit(el, jd, segments = 512, spanDays = null) {
+  const e = el.e
+  const a = el.a ?? el.q / (1 - e)
+  const points = []
+
+  if (e < 1) {
+    // 椭圆：画完整一圈
+    const period = (2 * Math.PI * Math.sqrt(a * a * a)) / GAUSS_K
+    for (let i = 0; i < segments; i++) {
+      points.push(cometaryPosition(el, el.tp + (i / segments) * period, {}))
+    }
+    return { points, closed: true }
+  }
+
+  // 双曲线：没有周期，只截近日点前后一段可见的弧
+  const span = spanDays ?? Math.max(900, Math.sqrt(Math.abs(a) ** 3) * 260)
+  for (let i = 0; i <= segments; i++) {
+    const t = el.tp + (-0.5 + i / segments) * 2 * span
+    points.push(cometaryPosition(el, t, {}))
+  }
+  return { points, closed: false }
+}
+
 /**
  * J2000 黄道坐标 → three.js 场景坐标。
  * 黄道面在场景里是 XZ 平面、Y 轴指向黄北极，且要保持右手系，
