@@ -289,3 +289,57 @@
   color: #6f809d;
   font-size: 11px;
 }
+
+/* ---- 题记 ---- */
+/*
+ * 中文用衬线、英文用衬线斜体，和下面那些等宽数字拉开距离 ——
+ * 上半张面板是给人读的，下半张是给人查的。
+ */
+.epigraphs {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.epigraph {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 2px solid rgba(127, 176, 255, 0.32);
+}
+
+.epigraph blockquote {
+  margin: 0;
+  font-family: Georgia, "Songti SC", "SimSun", "Noto Serif SC", serif;
+  font-size: 16px;
+  line-height: 1.9;
+  color: #e8eefb;
+}
+
+.epigraph-en blockquote {
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.epigraph figcaption {
+  margin-top: 7px;
+  /* 出处是给人读的，别用下面那套等宽数字字体 */
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 11.5px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: #8fa3c4;
+}
+
+.epigraph-era {
+  margin-left: 8px;
+  color: #62789b;
+}
+
+.epigraph-note {
+  margin: 9px 0 0;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  line-height: 1.85;
+  color: #9aabc6;
+}

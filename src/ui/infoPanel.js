@@ -82,7 +82,33 @@ function orbitalSummary(body, elements, jd) {
   }
 }
 
-export function createInfoPanel({ elements, accuracy, missions, edlProfiles, onClose, onLand }) {
+/**
+ * 题记：一段中文、一段英文，各自带作者、出处、年代，以及「为什么是这一段」。
+ * 文本全部来自 data/epigraphs.json，都是公有领域作品——这里不写死任何一句。
+ */
+function renderEpigraphs(entry) {
+  if (!entry) return ''
+  const one = (q, lang) => {
+    if (!q?.text) return ''
+    // 中文书名有《》兜着，空格就够；英文没有，得靠逗号和斜体把作者与篇名分开
+    const by =
+      lang === 'en'
+        ? [escapeHtml(q.author), q.source ? `<i>${escapeHtml(q.source)}</i>` : '']
+            .filter(Boolean)
+            .join(', ')
+        : escapeHtml([q.author, q.source].filter(Boolean).join(' '))
+    return `
+      <figure class="epigraph epigraph-${lang}">
+        <blockquote>${escapeHtml(q.text)}</blockquote>
+        <figcaption>—— ${by}${q.era ? `<span class="epigraph-era">· ${escapeHtml(q.era)}</span>` : ''}</figcaption>
+        ${q.note ? `<p class="epigraph-note">${escapeHtml(q.note)}</p>` : ''}
+      </figure>`
+  }
+  const body = one(entry.zh, 'zh') + one(entry.en, 'en')
+  return body ? `<div class="epigraphs">${body}</div>` : ''
+}
+
+export function createInfoPanel({ elements, accuracy, epigraphs, missions, edlProfiles, onClose, onLand }) {
   const panel = document.createElement('aside')
   panel.className = 'info-panel'
   panel.innerHTML = `
@@ -237,12 +263,16 @@ export function createInfoPanel({ elements, accuracy, missions, edlProfiles, onC
 
     const narrative = data.narrative ?? data.note ?? ''
     const isPlaceholder = narrative.startsWith('【占位')
+    // 题记顶掉占位文案：有题记时就不再显示「待填写」那段
+    const epigraph = renderEpigraphs(epigraphs?.[data.id])
     // 小天体没有大气/温度这些字段，相应分区自动省略
 
     bodyEl.innerHTML = `
+      ${epigraph ? `<div class="info-section">${epigraph}</div>` : ''}
+      ${narrative && !(isPlaceholder && epigraph) ? `
       <div class="info-section">
         <div class="info-narrative${isPlaceholder ? ' is-placeholder' : ''}">${escapeHtml(narrative)}</div>
-      </div>
+      </div>` : ''}
       <div class="info-section">
         <div class="info-section-title">物理参数</div>
         ${physical}

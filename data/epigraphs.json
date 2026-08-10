@@ -1,0 +1,271 @@
+{
+  "_meta": {
+    "purpose": "资料面板最上方的题记。每个天体一段中文、一段英文，各自标注出处与年代。",
+    "selection": "优先选直接写这颗星的文本；没有的（望远镜时代才发现的天体、卫星）就选相关的——要么是它名字的来历，要么是它的物理事实恰好被那句话说中了。note 字段写的就是这层关系。",
+    "copyright": "只收公有领域文本：中文均为 1912 年以前的典籍与诗词；英文均为 1930 年以前出版、版权已过期的作品。引文一律控制在一到三行。",
+    "fields": {
+      "text": "引文原文",
+      "author": "作者；佚名或集体成书的典籍留空",
+      "source": "篇目出处",
+      "era": "成书或出版年代",
+      "note": "为什么是这一段——引文与这颗天体的关系"
+    }
+  },
+
+  "bodies": {
+    "sun": {
+      "zh": {
+        "text": "暾将出兮东方，照吾槛兮扶桑。",
+        "author": "屈原",
+        "source": "《楚辞·九歌·东君》",
+        "era": "约公元前 3 世纪",
+        "note": "东君是楚人祭祀的日神。扶桑是想象中日出之处的神木——古人知道太阳每天从同一个方向升起，就为那个方向造了一棵树。"
+      },
+      "en": {
+        "text": "Hail, holy Light, offspring of Heav'n first-born.",
+        "author": "John Milton",
+        "source": "Paradise Lost, Book III",
+        "era": "1667",
+        "note": "弥尔顿写下这行呼告时已经完全失明十五年。太阳每秒把四百万吨质量变成光，而写这句话的人一点也看不见。"
+      }
+    },
+
+    "mercury": {
+      "zh": {
+        "text": "北方水也，其帝颛顼，其佐玄冥，执权而治冬，其神为辰星。",
+        "author": "刘安 等",
+        "source": "《淮南子·天文训》",
+        "era": "约公元前 139 年",
+        "note": "中文里五颗肉眼行星的名字都出自这一段五行配五星。水星的古名叫辰星——「辰」是时辰，因为它离太阳太近，只在晨昏那一小段时间露面。"
+      },
+      "en": {
+        "text": "Rise from the ground like feather'd Mercury.",
+        "author": "William Shakespeare",
+        "source": "Henry IV, Part 1, Act IV Scene 1",
+        "era": "约 1597",
+        "note": "说的是脚生双翼的信使神，不是行星。但这个名字给对了：水星 88 天绕日一圈，平均每秒 47 公里，是太阳系跑得最快的行星。"
+      }
+    },
+
+    "venus": {
+      "zh": {
+        "text": "东有启明，西有长庚。",
+        "author": "",
+        "source": "《诗经·小雅·大东》",
+        "era": "约公元前 8–7 世纪",
+        "note": "古人以为清晨东方那颗和黄昏西方那颗是两颗星，分别起了名字。其实是同一颗金星——它绕日的轨道在地球内侧，所以永远只能在太阳前后不远处出现。"
+      },
+      "en": {
+        "text": "Hesperus, that led / The starry host, rode brightest.",
+        "author": "John Milton",
+        "source": "Paradise Lost, Book IV",
+        "era": "1667",
+        "note": "Hesperus 是希腊人给昏星起的名字，希腊人也一度以为晨星昏星是两颗。它和《诗经》里的「长庚」指着同一颗星，两个文明各自误会了一遍。"
+      }
+    },
+
+    "earth": {
+      "zh": {
+        "text": "寄蜉蝣于天地，渺沧海之一粟。",
+        "author": "苏轼",
+        "source": "《前赤壁赋》",
+        "era": "1082 年",
+        "note": "苏轼在江上说人之于天地。九百年后旅行者一号从 60 亿公里外回望，拍到的地球只有 0.12 个像素——那张照片叫《暗淡蓝点》，说的是同一件事。"
+      },
+      "en": {
+        "text": "The world is charged with the grandeur of God.",
+        "author": "Gerard Manley Hopkins",
+        "source": "God's Grandeur",
+        "era": "作于 1877，1918 年出版",
+        "note": "charged 是「充电」那个 charge。霍普金斯把世界写成一件带电之物——而地球确实是太阳系里唯一表面同时有液态水、板块运动和生物圈的行星。"
+      }
+    },
+
+    "mars": {
+      "zh": {
+        "text": "七月流火，九月授衣。",
+        "author": "",
+        "source": "《诗经·豳风·七月》",
+        "era": "约公元前 8 世纪",
+        "note": "这里的「火」不是火星，是心宿二（天蝎座 α），入秋后它向西沉。但两者相关：古代最凶的天象叫「荧惑守心」，说的正是火星（荧惑）走进心宿、与这颗红星相遇——两颗红色的星撞在一起。"
+      },
+      "en": {
+        "text": "Then should the warlike Harry, like himself, / Assume the port of Mars.",
+        "author": "William Shakespeare",
+        "source": "Henry V, Prologue",
+        "era": "1599",
+        "note": "战神的仪态。这颗行星的红色其实与战争无关——是地表的铁在几十亿年里锈掉了，整颗星球都覆着一层氧化铁的尘。"
+      }
+    },
+
+    "jupiter": {
+      "zh": {
+        "text": "东方木也，其帝太皞，其佐句芒，执规而治春，其神为岁星。",
+        "author": "刘安 等",
+        "source": "《淮南子·天文训》",
+        "era": "约公元前 139 年",
+        "note": "木星的古名是岁星。它绕天一周约 12 年，古人便拿它纪年，一年走一「次」，十二次走完一圈——中国最早的纪年法就架在这颗行星的公转周期上。"
+      },
+      "en": {
+        "text": "At lovers' perjuries, / They say, Jove laughs.",
+        "author": "William Shakespeare",
+        "source": "Romeo and Juliet, Act II Scene 2",
+        "era": "约 1595",
+        "note": "众神之王在高处发笑。这个名字给得没错：把其余七颗行星全部加起来，还不到木星的一半重，太阳系的引力格局基本由太阳和它两个说了算。"
+      }
+    },
+
+    "saturn": {
+      "zh": {
+        "text": "中央土也，其帝黄帝，其佐后土，执绳而制四方，其神为镇星。",
+        "author": "刘安 等",
+        "source": "《淮南子·天文训》",
+        "era": "约公元前 139 年",
+        "note": "土星古名镇星（也写作填星）。它绕天一周约 28 年，二十八宿一年镇守一宿，故得此名——古人是靠「它走得多慢」来给它命名的。"
+      },
+      "en": {
+        "text": "Deep in the shady sadness of a vale / … / Sat gray-hair'd Saturn, quiet as a stone.",
+        "author": "John Keats",
+        "source": "Hyperion, Book I",
+        "era": "作于 1818–19，1820 年出版",
+        "note": "济慈写的是被推翻后枯坐不动的旧神。土星公转一圈 29.5 年，是肉眼可见的行星里最慢的一颗——中西两边都从它的「慢」里读出了苍老。"
+      }
+    },
+
+    "uranus": {
+      "zh": {
+        "text": "遂古之初，谁传道之？",
+        "author": "屈原",
+        "source": "《楚辞·天问》",
+        "era": "约公元前 3 世纪",
+        "note": "屈原问的是无人见证过的太初。天王星是第一颗用望远镜发现的行星（1781 年，赫歇尔），在那之前，所有文明的星图上都没有它——人类抬头看了几千年，从没「传道」过这颗星。"
+      },
+      "en": {
+        "text": "Then felt I like some watcher of the skies / When a new planet swims into his ken.",
+        "author": "John Keats",
+        "source": "On First Looking into Chapman's Homer",
+        "era": "1816",
+        "note": "济慈写这两行时，赫歇尔发现天王星才过去 35 年。「一颗新行星游入视野」在当时不是修辞，是刚刚发生过的真事，而且是有史以来第一次。"
+      }
+    },
+
+    "neptune": {
+      "zh": {
+        "text": "圜则九重，孰营度之？",
+        "author": "屈原",
+        "source": "《楚辞·天问》",
+        "era": "约公元前 3 世纪",
+        "note": "「谁量过这九重天？」海王星是先算出来、再看到的：勒威耶从天王星轨道的异常反推出它该在哪里，1846 年柏林天文台照着坐标一找就找到了，偏差不到一度。两千年后，真的有人量了。"
+      },
+      "en": {
+        "text": "Will all great Neptune's ocean wash this blood / Clean from my hand?",
+        "author": "William Shakespeare",
+        "source": "Macbeth, Act II Scene 2",
+        "era": "约 1606",
+        "note": "海神的大洋。这颗行星的名字来自它的深蓝，而那蓝色和水无关——是大气里的甲烷吸收了红光，把剩下的蓝色反射回来。"
+      }
+    },
+
+    "moon": {
+      "zh": {
+        "text": "明月几时有？把酒问青天。",
+        "author": "苏轼",
+        "source": "《水调歌头》",
+        "era": "1076 年",
+        "note": "答案是 45 亿年前：一颗火星大小的天体撞上原始地球，溅出的碎片聚成了月球。它此刻仍在以每年 3.8 厘米的速度远离我们。"
+      },
+      "en": {
+        "text": "Art thou pale for weariness / Of climbing heaven and gazing on the earth, / Wandering companionless…",
+        "author": "Percy Bysshe Shelley",
+        "source": "To the Moon",
+        "era": "作于 1820，1824 年出版",
+        "note": "雪莱问月亮是不是因为孤独而苍白。事实恰恰相反——月球被潮汐锁定，永远只把同一面朝向地球，它是太阳系里最不「companionless」的天体之一。"
+      }
+    },
+
+    "io": {
+      "zh": {
+        "text": "日安不到？烛龙何照？",
+        "author": "屈原",
+        "source": "《楚辞·天问》",
+        "era": "约公元前 3 世纪",
+        "note": "「太阳照不到的地方，是谁在发光？」木卫一是太阳系火山活动最剧烈的天体，四百多座活火山把硫喷到几百公里高。当它转进木星的阴影，人们仍能拍到它自己的火山在发光。"
+      },
+      "en": {
+        "text": "yet from those flames / No light, but rather darkness visible.",
+        "author": "John Milton",
+        "source": "Paradise Lost, Book I",
+        "era": "1667",
+        "note": "弥尔顿写的是地狱之火。木卫一被木星和另外两颗卫星反复拉扯揉捏，内部因潮汐生热而熔化——它是太阳系里最接近这句诗的地方。"
+      }
+    },
+
+    "europa": {
+      "zh": {
+        "text": "战战兢兢，如临深渊，如履薄冰。",
+        "author": "",
+        "source": "《诗经·小雅·小旻》",
+        "era": "约公元前 8–7 世纪",
+        "note": "在木卫二上这不是比喻。它的冰壳只有十几到几十公里厚，底下是一片全球性的液态水海洋，深度可能超过 100 公里——含水量比地球所有海洋加起来还多。"
+      },
+      "en": {
+        "text": "Water, water, every where, / Nor any drop to drink.",
+        "author": "Samuel Taylor Coleridge",
+        "source": "The Rime of the Ancient Mariner",
+        "era": "1798",
+        "note": "被水包围却喝不到。木卫二的海洋是目前太阳系内寻找地外生命最被看好的地方，而它整个封在冰盖之下，人类至今没有取到过一滴。"
+      }
+    },
+
+    "ganymede": {
+      "zh": {
+        "text": "北冥有鱼，其名为鲲，鲲之大，不知其几千里也。",
+        "author": "庄周",
+        "source": "《庄子·逍遥游》",
+        "era": "约公元前 4 世纪",
+        "note": "写「大」的开篇。木卫三直径 5268 公里，是太阳系最大的卫星，比水星还大——它大到本该算一颗行星，只是绕错了东西。它也是已知唯一拥有自身磁场的卫星。"
+      },
+      "en": {
+        "text": "I'll have no worse a name than Jove's own page, / And therefore look you call me Ganymede.",
+        "author": "William Shakespeare",
+        "source": "As You Like It, Act I Scene 3",
+        "era": "约 1599",
+        "note": "罗瑟琳女扮男装时给自己挑的名字。神话里伽倪墨得斯是被鹰掳上奥林匹斯、为宙斯斟酒的少年——这颗卫星同样被木星牢牢抓着，永远只以同一面示人。"
+      }
+    },
+
+    "callisto": {
+      "zh": {
+        "text": "今人不见古时月，今月曾经照古人。",
+        "author": "李白",
+        "source": "《把酒问月》",
+        "era": "8 世纪",
+        "note": "木卫四表面是太阳系撞击坑最密集的地方，40 亿年几乎没有变过：没有板块运动，没有火山，没有明显的潮汐加热。你今天看到的每一个坑，都是太阳系刚成形时砸下的。"
+      },
+      "en": {
+        "text": "boundless and bare / The lone and level sands stretch far away.",
+        "author": "Percy Bysshe Shelley",
+        "source": "Ozymandias",
+        "era": "1818",
+        "note": "雪莱写的是荒漠中一座倒掉的巨像。木卫四是一颗地质意义上已经死掉的星球——它没有留下废墟，因为它从来没有建起过什么。"
+      }
+    },
+
+    "titan": {
+      "zh": {
+        "text": "君问归期未有期，巴山夜雨涨秋池。",
+        "author": "李商隐",
+        "source": "《夜雨寄北》",
+        "era": "9 世纪",
+        "note": "土卫六是太阳系里除地球之外唯一会下雨、有河流与湖海的地方。只是那里的雨是液态甲烷，地表 −179 °C，一场雨可能要几百年才下一次。"
+      },
+      "en": {
+        "text": "Where Alph, the sacred river, ran / Through caverns measureless to man / Down to a sunless sea.",
+        "author": "Samuel Taylor Coleridge",
+        "source": "Kubla Khan",
+        "era": "作于 1797，1816 年出版",
+        "note": "柯尔律治梦见的地下河与不见天日的海。土卫六的甲烷河确实流向「照不到太阳的海」——厚厚的橙色雾霾之下，地表日光大约只有地球的千分之一。"
+      }
+    }
+  }
+}

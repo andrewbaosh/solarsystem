@@ -23,6 +23,7 @@ import { preloadLanderModel } from './scenes/landers.js'
 import { createLanding } from './scenes/landing.js'
 import missionsData from '../data/missions.json'
 import edlData from '../data/edl.json'
+import epigraphsData from '../data/epigraphs.json'
 import smallBodiesData from '../data/small-bodies.json'
 import { createAsteroidBelt } from './bodies/asteroidBelt.js'
 import { createSmallBodies } from './bodies/smallBodies.js'
@@ -123,6 +124,7 @@ const infoPanel = createInfoPanel({
     ...orbitalElements._meta.accuracy_arcsec_longitude,
     _validRange: orbitalElements._meta.validRange,
   },
+  epigraphs: epigraphsData.bodies,
   missions: missionsData,
   edlProfiles: edlData.profiles,
   onClose: () => deselect(),

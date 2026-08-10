@@ -12,6 +12,7 @@ import orbitalElements from '../data/orbital-elements.json' with { type: 'json' 
 import satellitesData from '../data/satellites.json' with { type: 'json' }
 import smallBodiesData from '../data/small-bodies.json' with { type: 'json' }
 import tourData from '../data/tour.json' with { type: 'json' }
+import epigraphs from '../data/epigraphs.json' with { type: 'json' }
 
 import {
   heliocentricAU,
@@ -505,6 +506,56 @@ heading('6. 卫星系统（跑真实 bodySystem）')
     '缓动表里没有 linear（禁止匀速直线运动）',
     !easings.has('linear'),
     `可用：${EASING_NAMES.join(', ')}`,
+  )
+}
+
+// ------------------------------------------------------------------ 题记
+{
+  heading('资料面板题记 data/epigraphs.json')
+
+  const needsText = [
+    ...planetsData.bodies.map((b) => ({ id: b.id, name: b.name, narrative: b.narrative })),
+    ...satellitesData.satellites.map((b) => ({ id: b.id, name: b.name, narrative: b.narrative })),
+  ]
+  const missing = needsText.filter(
+    (b) => (b.narrative ?? '').startsWith('【占位') && !epigraphs.bodies[b.id],
+  )
+  check(
+    '每个还是占位文案的天体都有题记顶上',
+    missing.length === 0,
+    missing.map((b) => b.name).join('、') || `${needsText.length} 个天体全部有中英题记`,
+  )
+
+  // 引文必须能追溯：缺出处的引文等于没出处
+  const incomplete = []
+  for (const [id, entry] of Object.entries(epigraphs.bodies)) {
+    for (const lang of ['zh', 'en']) {
+      const q = entry[lang]
+      if (!q?.text?.trim()) { incomplete.push(`${id}.${lang} 缺引文`); continue }
+      if (!q.source?.trim()) incomplete.push(`${id}.${lang} 缺出处`)
+      if (!q.era?.trim()) incomplete.push(`${id}.${lang} 缺年代`)
+      if (!q.note?.trim()) incomplete.push(`${id}.${lang} 缺相关性说明`)
+    }
+  }
+  check(
+    '每段引文都有出处、年代与相关性说明',
+    incomplete.length === 0,
+    incomplete.join('；') || `${Object.keys(epigraphs.bodies).length} 个天体 × 中英各一段，出处齐全`,
+  )
+
+  // 版权：只收公有领域。英文一律 1930 年前出版，中文一律 1912 年前
+  const tooRecent = []
+  for (const [id, entry] of Object.entries(epigraphs.bodies)) {
+    for (const [lang, limit] of [['zh', 1912], ['en', 1930]]) {
+      const years = [...(entry[lang]?.era ?? '').matchAll(/(\d{3,4})\s*年?/g)].map((m) => Number(m[1]))
+      const latest = Math.max(...years, -Infinity)
+      if (Number.isFinite(latest) && latest > limit) tooRecent.push(`${id}.${lang} ${latest}`)
+    }
+  }
+  check(
+    '引文均为公有领域（中文 ≤1912、英文 ≤1930 年出版）',
+    tooRecent.length === 0,
+    tooRecent.join('；') || '全部通过',
   )
 }
 
