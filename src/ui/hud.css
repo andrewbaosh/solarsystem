@@ -76,6 +76,14 @@ body.info-open .hud-bottom-right {
   color: #ffb347;
 }
 
+/* 窄屏下让快捷键提示先让位给时间条 —— 时间条是操作，提示只是速查 */
+@media (max-width: 1420px) {
+  .hud-bottom-right {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 /* 地表模式：轨道场景的 UI 全部收起 */
 body.surface-mode .hud,
 body.surface-mode .time-bar,

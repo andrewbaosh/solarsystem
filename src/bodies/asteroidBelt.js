@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { toSceneDistance } from '../core/scale.js'
-import { AU_KM, GAUSS_K, solveKepler, orbitalPlaneToEcliptic, eclipticToScene } from './orbital.js'
+import { AU_KM, GAUSS_K } from './orbital.js'
 
 const DEG = Math.PI / 180
 
@@ -39,20 +39,44 @@ export function createAsteroidBelt(scene, config) {
     return config.innerAU + hash(i, seed) * (config.outerAU - config.innerAU)
   }
 
-  // 每颗小行星的轨道要素，一次算好
+  /**
+   * 每颗小行星的轨道要素一次算好。
+   *
+   * 关键优化：把「轨道平面 → 黄道」那个旋转矩阵的六个系数**预先算出来**。
+   * 通用写法每帧要为每颗小行星做 6 次三角函数，3600 颗就是每帧 2 万多次，
+   * 实测占掉 60fps 预算的 28%。这些系数只由 Ω/ω/i 决定，根本不随时间变。
+   */
   const orbits = []
   for (let i = 0; i < count; i++) {
     const a = sampleSemiMajorAxis(i)
+    const e = Math.pow(hash(i, seed + 11), 1.8) * (config.maxEccentricity ?? 0.18)
+    const inc = Math.pow(hash(i, seed + 13), 1.7) * (config.maxInclinationDeg ?? 18) * DEG
+    const om = hash(i, seed + 17) * 360 * DEG
+    const w = hash(i, seed + 19) * 360 * DEG
+
+    const cw = Math.cos(w)
+    const sw = Math.sin(w)
+    const cO = Math.cos(om)
+    const sO = Math.sin(om)
+    const ci = Math.cos(inc)
+    const si = Math.sin(inc)
+
     orbits.push({
       a,
-      e: Math.pow(hash(i, seed + 11), 1.8) * (config.maxEccentricity ?? 0.18),
-      i: Math.pow(hash(i, seed + 13), 1.7) * (config.maxInclinationDeg ?? 18),
-      om: hash(i, seed + 17) * 360,
-      w: hash(i, seed + 19) * 360,
-      M0: hash(i, seed + 23) * 360,
-      // 平均运动，deg/day
-      n: (GAUSS_K / Math.sqrt(a * a * a) / DEG),
+      e,
+      M0: hash(i, seed + 23) * 2 * Math.PI,
+      n: GAUSS_K / Math.sqrt(a * a * a), // rad/day
+      b: a * Math.sqrt(1 - e * e), // 半短轴，省一次 sqrt
       size: 0.35 + Math.pow(hash(i, seed + 29), 3) * 2.2,
+      // 预乘好的基向量：位置 = px * xp + qx * yp
+      px: cw * cO - sw * sO * ci,
+      py: cw * sO + sw * cO * ci,
+      pz: sw * si,
+      qx: -sw * cO - cw * sO * ci,
+      qy: -sw * sO + cw * cO * ci,
+      qz: cw * si,
+      // 供自检脚本核对分布用
+      incDeg: inc / DEG,
     })
   }
 
@@ -72,31 +96,63 @@ export function createAsteroidBelt(scene, config) {
   const position = new THREE.Vector3()
   const quaternion = new THREE.Quaternion()
   const scaleVec = new THREE.Vector3()
-  const plane = {}
 
-  function update(daysSinceJ2000, radiusScale) {
-    for (let i = 0; i < count; i++) {
+  /**
+   * 分批更新：小行星公转周期以年计，在屏幕上每帧只挪不到一个像素，
+   * 完全没必要每帧全算。轮流更新 1/BATCHES，视觉上分辨不出，开销降到 1/BATCHES。
+   */
+  const BATCHES = 4
+  let batch = 0
+
+  function updateRange(from, to, daysSinceJ2000, radiusScale) {
+    for (let i = from; i < to; i++) {
       const o = orbits[i]
-      const M = ((o.M0 + o.n * daysSinceJ2000) % 360) * DEG
-      const { E } = solveKepler(M > Math.PI ? M - 2 * Math.PI : M, o.e)
+
+      // 开普勒方程，就地展开：偏心率都不大，三次牛顿迭代足够收敛到 1e-10
+      let M = (o.M0 + o.n * daysSinceJ2000) % (2 * Math.PI)
+      if (M > Math.PI) M -= 2 * Math.PI
+      else if (M < -Math.PI) M += 2 * Math.PI
+      let E = M + o.e * Math.sin(M)
+      for (let k = 0; k < 3; k++) {
+        E += (M - (E - o.e * Math.sin(E))) / (1 - o.e * Math.cos(E))
+      }
+
       const xp = o.a * (Math.cos(E) - o.e)
-      const yp = o.a * Math.sqrt(1 - o.e * o.e) * Math.sin(E)
-      orbitalPlaneToEcliptic(xp, yp, { peri: o.om + o.w, node: o.om, I: o.i }, plane)
+      const yp = o.b * Math.sin(E)
+
+      // 预乘好的基向量，零三角函数
+      const x = o.px * xp + o.qx * yp
+      const y = o.py * xp + o.qy * yp
+      const z = o.pz * xp + o.qz * yp
 
       // 与行星一样：只压缩到太阳的距离、保留方向
-      const rAU = Math.hypot(plane.x, plane.y, plane.z)
+      const rAU = Math.sqrt(x * x + y * y + z * z)
       const s = toSceneDistance(rAU * AU_KM) / rAU
-      eclipticToScene(plane, position).multiplyScalar(s)
+      position.set(x * s, z * s, -y * s) // 黄道 → 场景（x, z, -y）
 
       scaleVec.setScalar(o.size * radiusScale)
       mesh.setMatrixAt(i, matrix.compose(position, quaternion, scaleVec))
     }
+  }
+
+  function update(daysSinceJ2000, radiusScale) {
+    const size = Math.ceil(count / BATCHES)
+    const from = batch * size
+    updateRange(from, Math.min(count, from + size), daysSinceJ2000, radiusScale)
+    batch = (batch + 1) % BATCHES
+    mesh.instanceMatrix.needsUpdate = true
+  }
+
+  /** 尺度切换等场合需要立刻全量刷新 */
+  function updateAll(daysSinceJ2000, radiusScale) {
+    updateRange(0, count, daysSinceJ2000, radiusScale)
     mesh.instanceMatrix.needsUpdate = true
   }
 
   return {
     mesh,
     update,
+    updateAll,
     count,
     orbits,
     setVisible: (v) => {

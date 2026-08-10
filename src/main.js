@@ -87,7 +87,7 @@ time.setSpeed(86400) // 1 天/秒
 
 // 先把天体摆到位，这样第一帧的聚焦目标就是正确的
 bodySystem.update(time.getJD())
-asteroidBelt.update(time.getJD() - time.J2000_JD, 1)
+asteroidBelt.updateAll(time.getJD() - time.J2000_JD, 1)
 smallBodies.update(time.getJD())
 smallBodies.rebuildOrbitLines(time.getJD())
 let lastSmallBodyRevision = scale.getScaleRevision()
@@ -130,6 +130,7 @@ function select(body) {
   if (!body) return deselect()
   cameraRig.flyTo(body)
   infoPanel.show(body, time.getJD())
+  timeControls.applyFocusRate(body) // 贴近看时把倍率压慢，免得自转频闪
   // 面板一打开就把该天体的着陆器模型预热到缓存，用户真点「登陆」时就不用等网络了
   const profile = edlData.profiles[body.data.id]
   preloadLanderModel(profile?.model, profile?.modelHeight)
@@ -140,6 +141,7 @@ function deselect() {
   cameraRig.setFocus(null)
   cameraRig.cancelFlight()
   infoPanel.hide()
+  timeControls.applyFocusRate(null) // 恢复你自己设的倍率
 }
 
 createSelection({
@@ -234,12 +236,15 @@ renderer.setAnimationLoop(() => {
     bodySystem.update(time.getJD())
     if (smallBodiesOn) {
       const revision = scale.getScaleRevision()
-      if (revision !== lastSmallBodyRevision) {
-        smallBodies.rebuildOrbitLines(time.getJD())
-        lastSmallBodyRevision = revision
-      }
       const days = time.getJD() - time.J2000_JD
-      asteroidBelt.update(days, scale.getRadiusExaggeration() / 60)
+      if (revision !== lastSmallBodyRevision) {
+        // 尺度在变：小行星带必须整批刷新，否则分批更新会把它撕成四段
+        smallBodies.rebuildOrbitLines(time.getJD())
+        asteroidBelt.updateAll(days, scale.getRadiusExaggeration() / 60)
+        lastSmallBodyRevision = revision
+      } else {
+        asteroidBelt.update(days, scale.getRadiusExaggeration() / 60)
+      }
       smallBodies.update(time.getJD())
     }
     cameraRig.update(dt)

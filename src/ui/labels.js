@@ -50,6 +50,17 @@ export function createLabels(bodies, camera) {
     return false
   }
 
+  /**
+   * 标签避让：全景下二十多个标签会叠成一团，谁也读不清。
+   * 按优先级（近的、大的优先）逐个放置，与已放置标签重叠的就跳过。
+   * 这比缩小字号或一律隐藏更好 —— 你总能读清最重要的那几个。
+   */
+  const placed = []
+
+  function overlaps(a, b) {
+    return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom)
+  }
+
   function update() {
     // 投影用的是 matrixWorldInverse，这里显式刷新，避免依赖 render 的调用顺序
     camera.updateMatrixWorld()
@@ -61,6 +72,8 @@ export function createLabels(bodies, camera) {
     // 每像素对应的角度，用来把场景半径换算成屏幕半径
     const pxPerRadian = h / (2 * Math.tan((camera.fov * Math.PI) / 360))
 
+    // 先算出每个标签的屏幕位置与优先级，再按优先级决定谁能留下
+    const candidates = []
     for (const item of items) {
       const { body, el } = item
       body.group.getWorldPosition(worldPos)
@@ -86,15 +99,40 @@ export function createLabels(bodies, camera) {
         screenRadius < h * 0.5 && // 已经糊满屏幕时就没必要标注了
         !isOccluded(body, distance)
 
-      if (show !== item.visible) {
-        el.style.display = show ? '' : 'none'
-        item.visible = show
+      if (!show) {
+        if (item.visible) {
+          el.style.display = 'none'
+          item.visible = false
+        }
+        continue
       }
-      if (!show) continue
+      // 屏幕上越大越优先；同样大小时近的优先
+      candidates.push({ item, x, y: y - screenRadius - GAP, priority: screenRadius * 1000 - distance })
+    }
 
-      el.style.transform = `translate(-50%, -100%) translate3d(${x.toFixed(1)}px, ${(
-        y - screenRadius - GAP
-      ).toFixed(1)}px, 0)`
+    // 按优先级放置，与已放置的重叠就跳过
+    candidates.sort((a, b) => b.priority - a.priority)
+    placed.length = 0
+    for (const c of candidates) {
+      const { item, x, y } = c
+      const width = item.el.offsetWidth || 70
+      const height = item.el.offsetHeight || 30
+      const rect = { left: x - width / 2, right: x + width / 2, top: y - height, bottom: y }
+
+      if (placed.some((p) => overlaps(rect, p))) {
+        if (item.visible) {
+          item.el.style.display = 'none'
+          item.visible = false
+        }
+        continue
+      }
+      placed.push(rect)
+
+      if (!item.visible) {
+        item.el.style.display = ''
+        item.visible = true
+      }
+      item.el.style.transform = `translate(-50%, -100%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`
     }
   }
 
