@@ -1,5 +1,6 @@
 import { createSurfaceScene } from './surface.js'
 import { createEdlSequence } from '../ui/edlSequence.js'
+import { createAssetToast } from '../ui/loading.js'
 
 /**
  * 登陆流程的调度器。
@@ -30,6 +31,7 @@ export function createLanding({
   onModeChange,
 }) {
   const sequence = createEdlSequence({ onSkip: () => sequence.skip() })
+  const assetToast = createAssetToast()
 
   let mode = 'orbit' // 'orbit' | 'surface'
   let surface = null
@@ -47,6 +49,8 @@ export function createLanding({
       missions,
       renderer,
       edlProfile: edlProfiles[body.data.id],
+      onModelLoadStart: () => assetToast.show('正在加载着陆器模型…'),
+      onModelSettled: () => assetToast.hide(),
     })
     surface.body = body
     surfaceHud.attach(surface)

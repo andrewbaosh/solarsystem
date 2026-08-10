@@ -9,17 +9,19 @@
     "steps[].swap": "为 true 时在此阶段切换到地表场景（此刻遮罩应当接近全不透明）",
     "lander": "着陆器模型类型，见 src/scenes/landers.js",
     "chaseCam": "第三人称追机位的距离与高度（米）",
-    "steps[].viz": "第三人称视角里的演示状态：y 演示高度（米，非真实高度，真实值见 altitude 字段）、chute 开伞、plume 尾焰、tether 空中吊车缆绳放下比例。只有 swap 及其之后的阶段需要"
+    "steps[].viz": "第三人称视角里的演示状态：y 演示高度（米，非真实高度，真实值见 altitude 字段）、chute 开伞、plume 尾焰、tether 空中吊车缆绳放下比例。只有 swap 及其之后的阶段需要",
+    "model": "官方 glTF 模型文件名（public/models/），缺省则用 landers.js 的程序化外形",
+    "modelHeight": "模型归一化后的真实高度（米）"
   },
   "profiles": {
     "mars": {
       "real": true,
       "basedOn": {
-        "mission": "好奇号",
-        "missionEn": "Curiosity (MSL)",
-        "date": "2012-08-06",
-        "site": "盖尔陨击坑",
-        "method": "空中吊车"
+        "mission": "毅力号",
+        "missionEn": "Perseverance",
+        "date": "2021-02-18",
+        "site": "耶泽罗陨击坑",
+        "method": "空中吊车 + 地形相对导航"
       },
       "veilStyle": "plasma",
       "totalNote": "真实全程约 7 分钟，即所谓「恐怖七分钟」",
@@ -63,7 +65,7 @@
           "speed": "125 m/s",
           "hold": 2.6,
           "veil": 0.88,
-          "text": "隔热罩脱落，着陆雷达第一次看见地面，开始实时测高测速。",
+          "text": "隔热罩脱落，着陆雷达第一次看见地面。毅力号在这里启用地形相对导航：拍下地面实景与预存地图逐帧比对，自主判断该往哪躲。",
           "viz": {
             "y": 85,
             "chute": 1
@@ -103,7 +105,7 @@
           "speed": "0.75 m/s",
           "hold": 3,
           "veil": 0,
-          "text": "车轮直接落在地面上。缆绳被切断，下降级带着剩余燃料飞离 650 m 外坠毁——它的最后一个任务是别落在自己刚放下的车旁边。",
+          "text": "车轮直接落在地面上。缆绳被切断，下降级带着剩余燃料飞离并在 700 m 外坠毁——它的最后一个任务是别落在自己刚放下的车旁边。",
           "viz": {
             "y": 0,
             "tether": 1
@@ -114,7 +116,9 @@
       "chaseCam": {
         "dist": 20,
         "height": 9
-      }
+      },
+      "model": "perseverance.glb",
+      "modelHeight": 2.2
     },
     "moon": {
       "real": true,
@@ -190,7 +194,9 @@
       "chaseCam": {
         "dist": 16,
         "height": 7
-      }
+      },
+      "model": "apollo_lm.glb",
+      "modelHeight": 7.04
     },
     "venus": {
       "real": true,
@@ -348,7 +354,9 @@
       "chaseCam": {
         "dist": 12,
         "height": 5
-      }
+      },
+      "model": "huygens.glb",
+      "modelHeight": 1.6
     },
     "earth": {
       "real": true,

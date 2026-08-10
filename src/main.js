@@ -16,9 +16,14 @@ import { createSelection } from './ui/selection.js'
 import { createInfoPanel } from './ui/infoPanel.js'
 import { createTimeControls } from './ui/timeControls.js'
 import { createSurfaceHud } from './ui/surfaceHud.js'
+import { createLoadingScreen } from './ui/loading.js'
+import { preloadLanderModel } from './scenes/landers.js'
 import { createLanding } from './scenes/landing.js'
 import missionsData from '../data/missions.json'
 import edlData from '../data/edl.json'
+
+// 首屏加载界面要在任何资源开始加载之前挂上，否则进度会从中途开始
+createLoadingScreen({ manager: THREE.DefaultLoadingManager })
 
 const canvas = document.getElementById('scene')
 const renderer = createRenderer(canvas)
@@ -111,6 +116,8 @@ function select(body) {
   if (!body) return deselect()
   cameraRig.flyTo(body)
   infoPanel.show(body, time.getJD())
+  // 面板一打开就把该天体的着陆器模型预热到缓存，用户真点「登陆」时就不用等网络了
+  preloadLanderModel(edlData.profiles[body.data.id]?.model)
 }
 
 /** 解除跟随，回到自由视角 */

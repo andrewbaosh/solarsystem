@@ -1,4 +1,84 @@
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+
+const BASE = import.meta.env?.BASE_URL ?? '/'
+const MODEL_BASE = BASE + 'models/'
+
+/**
+ * NASA 的部分官方模型（毅力号）用了 Draco 网格压缩，必须挂 DRACOLoader 才能解。
+ * 解码器就在 three 包自带的 examples/jsm/libs/draco/gltf/ 里，已复制到 public/draco/，
+ * 不是新增依赖。只保留 wasm 版本，纯 JS 回退和编码器删掉省了 1.4 MB。
+ */
+/**
+ * 模型走**独立的** LoadingManager：着陆器模型最大 5 MB，是按需加载的，
+ * 不能算进首屏进度条里，否则首屏会一直等一个当前根本用不到的文件。
+ */
+const modelManager = typeof document !== 'undefined' ? new THREE.LoadingManager() : null
+
+const gltfLoader = (() => {
+  if (typeof document === 'undefined') return null
+  const loader = new GLTFLoader(modelManager)
+  const draco = new DRACOLoader(modelManager)
+  draco.setDecoderPath(BASE + 'draco/')
+  loader.setDRACOLoader(draco)
+  return loader
+})()
+
+/**
+ * 预热浏览器缓存。在资料面板打开时就悄悄把模型拉下来，
+ * 等用户真的点「登陆」时只剩解析开销，不必再等网络。
+ * 只做 fetch 不做解析，避免跨场景共享 geometry 带来的释放问题。
+ */
+const warmed = new Set()
+export function preloadLanderModel(file) {
+  if (!file || warmed.has(file) || typeof fetch === 'undefined') return
+  warmed.add(file)
+  fetch(MODEL_BASE + file, { cache: 'force-cache' }).catch(() => warmed.delete(file))
+}
+
+/**
+ * 把模型摆正：水平居中、最低点落在 y=0、按真实高度缩放。
+ * glTF 里的单位和原点各家不同，不归一化的话不是陷进地里就是浮在空中。
+ */
+function normalizeModel(object, targetHeight) {
+  const box = new THREE.Box3().setFromObject(object)
+  const size = new THREE.Vector3()
+  const center = new THREE.Vector3()
+  box.getSize(size)
+  box.getCenter(center)
+
+  const scale = targetHeight && size.y > 1e-6 ? targetHeight / size.y : 1
+  object.scale.setScalar(scale)
+  object.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale)
+
+  object.traverse((child) => {
+    if (!child.isMesh) return
+    child.castShadow = true
+    child.receiveShadow = true
+  })
+  return { scale, size }
+}
+
+/** 异步加载官方模型；失败时保留程序化模型，不至于什么都看不到 */
+function loadModel(file, targetHeight) {
+  if (!gltfLoader) return Promise.resolve(null)
+  return new Promise((resolve) => {
+    gltfLoader.load(
+      MODEL_BASE + file,
+      (gltf) => {
+        const root = gltf.scene
+        normalizeModel(root, targetHeight)
+        resolve(root)
+      },
+      undefined,
+      (err) => {
+        console.warn('[lander] 模型加载失败，继续使用程序化模型:', file, err)
+        resolve(null)
+      },
+    )
+  })
+}
 
 /**
  * 着陆器模型。
@@ -18,6 +98,13 @@ const materials = {
   black: () => new THREE.MeshStandardMaterial({ color: 0x17191c, roughness: 0.8, metalness: 0.3 }),
   copper: () => new THREE.MeshStandardMaterial({ color: 0xa86a3a, roughness: 0.5, metalness: 0.7 }),
   solar: () => new THREE.MeshStandardMaterial({ color: 0x1b2f5e, roughness: 0.35, metalness: 0.6 }),
+}
+
+/** 把组内所有子件整体抬起，使最低点正好落在组的原点上（原点 = 触地点） */
+function sitOnOrigin(group) {
+  const box = new THREE.Box3().setFromObject(group)
+  if (!Number.isFinite(box.min.y)) return
+  for (const child of group.children) child.position.y -= box.min.y
 }
 
 function mesh(geometry, material, x = 0, y = 0, z = 0) {
@@ -191,6 +278,9 @@ function skyCrane() {
   const arm = mesh(new THREE.BoxGeometry(1.1, 0.14, 0.14), materials.metal(), -1.4, -0.15, 0.3)
   arm.rotation.z = -0.4
   rover.add(arm)
+  // 让 rover 组的原点落在轮子触地点上 —— 否则按「原点贴地」摆放时，
+  // 半个车会陷进地里（截图里只看得见白盒子就是这个原因）
+  sitOnOrigin(rover)
   g.add(rover)
 
   return { group: g, height: 3.0, parts: { stage, tethers, rover } }
@@ -309,6 +399,27 @@ export function createLander(type = 'generic', options = {}) {
   const built = build()
   const root = new THREE.Group()
   root.add(built.group)
+
+  /**
+   * 有官方模型时用官方模型替换程序化外形。
+   * 先把程序化版本挂上去、再异步替换：网络慢也不会出现空场景。
+   */
+  if (options.model && gltfLoader) {
+    options.onModelLoadStart?.()
+    loadModel(options.model, options.modelHeight).then((model) => {
+      options.onModelSettled?.()
+      if (!model) return
+      if (built.parts?.rover) {
+        // 空中吊车：只换车，下降级与缆绳仍是程序化的
+        built.parts.rover.clear()
+        built.parts.rover.add(model)
+      } else {
+        built.group.visible = false
+        root.add(model)
+      }
+      options.onModelLoaded?.(model)
+    })
+  }
 
   const parachute = createParachute(options.parachuteColor)
   parachute.visible = false

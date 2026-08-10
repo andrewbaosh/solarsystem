@@ -38,7 +38,7 @@
       "poleDec": 63.87,
       "color": "#ffcc55",
       "textures": {
-        "map": "2k_sun.jpg"
+        "map": "2k_sun.webp"
       },
       "massKg": 1.989e+30,
       "surfaceGravityMs2": 274,
@@ -83,7 +83,7 @@
       "poleDec": 61.4155,
       "color": "#8c8680",
       "textures": {
-        "map": "2k_mercury.jpg"
+        "map": "2k_mercury.webp"
       },
       "massKg": 3.301e+23,
       "surfaceGravityMs2": 3.7,
@@ -148,7 +148,7 @@
       "poleDec": 67.16,
       "color": "#e8cda2",
       "textures": {
-        "map": "2k_venus_atmosphere.jpg"
+        "map": "2k_venus_atmosphere.webp"
       },
       "atmosphere": {
         "color": "#f5e2a8",
@@ -213,9 +213,9 @@
       "poleDec": 90,
       "color": "#3d7fd6",
       "textures": {
-        "map": "2k_earth_daymap.jpg",
-        "normalMap": "2k_earth_normal_map.png",
-        "emissiveMap": "2k_earth_nightmap.jpg"
+        "map": "2k_earth_daymap.webp",
+        "normalMap": "2k_earth_normal_map.webp",
+        "emissiveMap": "2k_earth_nightmap.webp"
       },
       "atmosphere": {
         "color": "#79b2ff",
@@ -224,7 +224,7 @@
         "radiusScale": 1.03
       },
       "cloudLayer": {
-        "map": "2k_earth_clouds.jpg",
+        "map": "2k_earth_clouds.webp",
         "radiusScale": 1.003,
         "rotationFactor": 1.15
       },
@@ -293,8 +293,8 @@
       "poleDec": 52.8865,
       "color": "#c1440e",
       "textures": {
-        "map": "2k_mars.jpg",
-        "derivedNormalFrom": "2k_mars.jpg",
+        "map": "2k_mars.webp",
+        "derivedNormalFrom": "2k_mars.webp",
         "derivedNormalStrength": 0.6
       },
       "atmosphere": {
@@ -332,9 +332,9 @@
         "landable": true,
         "seed": 2012,
         "site": {
-          "name": "盖尔陨击坑",
-          "lat": -4.5895,
-          "lon": 137.4417
+          "name": "耶泽罗陨击坑",
+          "lat": 18.4447,
+          "lon": 77.4508
         },
         "sunElevationDeg": 33,
         "sunAzimuthDeg": 128,
@@ -368,7 +368,7 @@
       "poleDec": 64.495303,
       "color": "#d8ca9d",
       "textures": {
-        "map": "2k_jupiter.jpg"
+        "map": "2k_jupiter.webp"
       },
       "massKg": 1.898e+27,
       "surfaceGravityMs2": 24.79,
@@ -405,10 +405,10 @@
       "poleDec": 83.537,
       "color": "#e3d9a6",
       "textures": {
-        "map": "2k_saturn.jpg"
+        "map": "2k_saturn.webp"
       },
       "ring": {
-        "map": "2k_saturn_ring_alpha.png",
+        "map": "2k_saturn_ring_alpha.webp",
         "innerRadiusKm": 74500,
         "outerRadiusKm": 140220
       },
@@ -447,7 +447,7 @@
       "poleDec": -15.175,
       "color": "#a6dbe8",
       "textures": {
-        "map": "2k_uranus.jpg"
+        "map": "2k_uranus.webp"
       },
       "massKg": 8.681e+25,
       "surfaceGravityMs2": 8.87,
@@ -489,7 +489,7 @@
       "poleNote": "IAU 给的是 α0=299.36+0.70·sinN、δ0=43.46-0.51·cosN（N=357.85°+52.316°T）。这里取 T=0 的求值结果，直接用常数项 43.46 会让转轴倾角偏小 0.47°",
       "color": "#4062b8",
       "textures": {
-        "map": "2k_neptune.jpg"
+        "map": "2k_neptune.webp"
       },
       "massKg": 1.024e+26,
       "surfaceGravityMs2": 11.15,
@@ -520,7 +520,7 @@
     }
   ],
   "background": {
-    "map": "2k_stars_milky_way.jpg",
+    "map": "2k_stars_milky_way.webp",
     "intensity": 0.12
   }
 }

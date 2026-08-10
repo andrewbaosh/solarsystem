@@ -1,0 +1,116 @@
+/* 首屏加载 + 资源加载提示 */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  background: radial-gradient(circle at 50% 45%, #0b1220 0%, #04060b 70%);
+  color: #cfe3ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  transition: opacity 0.8s ease;
+}
+
+.boot.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 一颗慢慢转的行星，比转圈菊花更贴题 */
+.boot-orb {
+  position: relative;
+  width: 86px;
+  height: 86px;
+}
+
+.boot-orb i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 32%, #ffd9a0 0%, #e08a3c 38%, #8a3f18 70%, #2a1208 100%);
+  box-shadow: 0 0 34px rgba(255, 170, 90, 0.32);
+}
+
+.boot-orb b {
+  position: absolute;
+  inset: -17px;
+  border-radius: 50%;
+  border: 1px solid rgba(140, 180, 235, 0.3);
+  border-top-color: rgba(180, 215, 255, 0.9);
+  animation: boot-spin 1.5s linear infinite;
+}
+
+@keyframes boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.boot-title {
+  font-size: 15px;
+  letter-spacing: 0.34em;
+  color: #eaf2ff;
+}
+
+.boot-bar {
+  width: min(320px, 68vw);
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(140, 180, 235, 0.18);
+  overflow: hidden;
+}
+
+.boot-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #6f9bd8, #9cc4ff);
+  transition: width 0.3s ease;
+}
+
+.boot-status {
+  min-height: 1.2em;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: #7f93b5;
+}
+
+/* 着陆器模型加载提示（转场期间，右下角低调显示） */
+.asset-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 63;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  opacity: 0;
+  pointer-events: none;
+  color: #cfe3ff;
+  background: rgba(6, 9, 16, 0.8);
+  border: 1px solid rgba(140, 180, 235, 0.28);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  transition: opacity 0.35s ease;
+}
+
+.asset-toast.is-visible {
+  opacity: 1;
+}
+
+.asset-toast i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(140, 180, 235, 0.35);
+  border-top-color: #9cc4ff;
+  animation: boot-spin 0.9s linear infinite;
+}

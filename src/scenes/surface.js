@@ -32,7 +32,15 @@ function distanceToSunKm(body, elements) {
   return set.a[0] * AU_KM
 }
 
-export function createSurfaceScene({ body, elements, missions, renderer, edlProfile }) {
+export function createSurfaceScene({
+  body,
+  elements,
+  missions,
+  renderer,
+  edlProfile,
+  onModelLoadStart,
+  onModelSettled,
+}) {
   const config = body.data.surface
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(
@@ -78,9 +86,23 @@ export function createSurfaceScene({ body, elements, missions, renderer, edlProf
   // ---- 光照 ----------------------------------------------------------------
 
   const SUNLIGHT_AT_1AU = 7.5
+  const scattering = config.sky?.scattering ?? 0
+
+  /**
+   * 渲染亮度用的是**感知压缩后**的辐照度，不是线性值。
+   *
+   * 线性照做的话土卫六只有地球的 1.1%、木卫二 3.7%，屏幕上直接全黑 —— 而真实的
+   * 惠更斯号照片里地面是看得见的，因为人眼与相机都会适应亮度。另外厚霾天空本身是亮的，
+   * 亮天空配全黑地面在物理上也自相矛盾。这里取 0.35 次幂，把 600:1 的动态范围压到
+   * 约 9:1：各天体的明暗次序与差距感都还在，但都能看见。
+   * HUD 上显示的仍是**真实的**辐照度与百分比，不受这里影响。
+   */
+  const lightBudget = Math.pow(irradianceRatio, 0.35)
+
   const sunLight = new THREE.DirectionalLight(
     new THREE.Color(config.sunlightColor ?? '#fff4e6'),
-    SUNLIGHT_AT_1AU * irradianceRatio,
+    // 大气越厚，直射越少、漫射越多：土卫六的地面几乎全靠天空散射照亮
+    SUNLIGHT_AT_1AU * lightBudget * (1 - scattering * 0.6),
   )
   sunLight.castShadow = true
   sunLight.shadow.mapSize.set(2048, 2048)
@@ -94,10 +116,11 @@ export function createSurfaceScene({ body, elements, missions, renderer, edlProf
   scene.add(sunLight)
   scene.add(sunLight.target)
 
+  // 无大气天体几乎没有天空散射，所以月面的阴影是纯黑的、对比度极高
   const skyFill = new THREE.HemisphereLight(
     new THREE.Color(config.sky?.horizon ?? '#ffffff'),
     new THREE.Color(config.terrain?.groundColor ?? '#555555'),
-    (config.sky?.scattering ?? 0) * 1.6 * irradianceRatio + 0.02,
+    SUNLIGHT_AT_1AU * lightBudget * (0.06 + scattering * 0.9),
   )
   scene.add(skyFill)
 
@@ -107,9 +130,27 @@ export function createSurfaceScene({ body, elements, missions, renderer, edlProf
   const landingZ = 0
   const groundY = terrain.heightAt(landingX, landingZ)
 
-  const lander = createLander(edlProfile?.lander ?? 'generic')
+  const lander = createLander(edlProfile?.lander ?? 'generic', {
+    model: edlProfile?.model,
+    modelHeight: edlProfile?.modelHeight,
+    onModelLoadStart: onModelLoadStart,
+    onModelSettled: onModelSettled,
+  })
   lander.root.position.set(landingX, groundY, landingZ)
   scene.add(lander.root)
+
+  /**
+   * 由天空生成一张环境贴图。
+   * NASA 的 glTF 模型用的是 PBR 材质，金属度很高；没有环境可反射时金属件会发黑。
+   * 拿天空球烘一张 PMREM 出来，模型才有正常的金属质感。
+   */
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  const skyScene = new THREE.Scene()
+  const skyClone = sky.mesh.clone()
+  skyScene.add(skyClone)
+  const environment = pmrem.fromScene(skyScene).texture
+  scene.environment = environment
+  pmrem.dispose()
 
   // 空中吊车放下车之后，下降级会飞离
   let craneReleasing = false

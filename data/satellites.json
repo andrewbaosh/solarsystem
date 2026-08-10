@@ -56,8 +56,8 @@
       "poleDec": 66.5392,
       "color": "#b9b6b0",
       "textures": {
-        "map": "2k_moon.jpg",
-        "derivedNormalFrom": "2k_moon.jpg",
+        "map": "2k_moon.webp",
+        "derivedNormalFrom": "2k_moon.webp",
         "derivedNormalStrength": 1
       },
       "massKg": 7.342e+22,
