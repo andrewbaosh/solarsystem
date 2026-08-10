@@ -261,6 +261,7 @@ export function createSurfaceScene({
   orbitControls.maxDistance = 400
   // 不让镜头钻到地面以下
   orbitControls.maxPolarAngle = Math.PI * 0.495
+  orbitControls.listenToKeyEvents(window)
   orbitControls.enabled = false
   const handoffFrom = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }
   const handoffTo = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }

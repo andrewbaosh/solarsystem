@@ -16,9 +16,32 @@ export function createCameraRig(camera, domElement) {
   controls.rotateSpeed = 0.55
   controls.zoomSpeed = 0.9
   controls.zoomToCursor = true
+  // 方向键平移：触摸板上「右键拖动」很别扭，给一条键盘通路
+  controls.listenToKeyEvents(window)
   // 滚轮缩放是按比例 dolly 的，所以从 1e3 拉到 1e-3 是均匀的对数体验
   controls.minDistance = 1e-4
   controls.maxDistance = 1e9
+
+  /**
+   * 画布尺寸为 0 时（标签页隐藏、容器被折叠）OrbitControls 内部要除以
+   * clientHeight，一次输入就能把相机位置写成 NaN，而 NaN 会顺着投影矩阵
+   * 永久污染下去、尺寸恢复也回不来。所以尺寸退化时直接停掉控制器，
+   * 并留一份最近的正常状态做兜底。
+   */
+  const lastGoodPosition = new THREE.Vector3()
+  const lastGoodTarget = new THREE.Vector3()
+  let hasLastGood = false
+
+  function elementUsable() {
+    return domElement.clientWidth > 0 && domElement.clientHeight > 0
+  }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => {
+      controls.enabled = elementUsable()
+    }).observe(domElement)
+  }
+  controls.enabled = elementUsable()
 
   const smoothedTarget = new THREE.Vector3()
   const desiredTarget = new THREE.Vector3()
@@ -60,6 +83,16 @@ export function createCameraRig(camera, domElement) {
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
   function update(dt) {
+    // 万一还是被写成了 NaN（比如尺寸归零那一帧刚好有输入），回滚到最近的正常状态
+    if (!Number.isFinite(camera.position.lengthSq() + controls.target.lengthSq())) {
+      if (!hasLastGood) return
+      camera.position.copy(lastGoodPosition)
+      controls.target.copy(lastGoodTarget)
+      smoothedTarget.copy(lastGoodTarget)
+      snapNext = true
+      distanceAnimation = null
+    }
+
     if (focus?.group) {
       focus.group.getWorldPosition(desiredTarget)
 
@@ -98,6 +131,12 @@ export function createCameraRig(camera, domElement) {
     }
 
     controls.update()
+
+    if (Number.isFinite(camera.position.lengthSq() + controls.target.lengthSq())) {
+      lastGoodPosition.copy(camera.position)
+      lastGoodTarget.copy(controls.target)
+      hasLastGood = true
+    }
   }
 
   function cancelFlight() {
