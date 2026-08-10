@@ -51,6 +51,7 @@ export function createSurfaceHud({ onExit }) {
 
   function attach(surfaceScene) {
     scene = surfaceScene
+    root.classList.add('is-descending') // 建好场景时必定还在下降段，避免闪一下
     const info = surfaceScene.info
 
     panel.innerHTML = [
@@ -99,9 +100,10 @@ export function createSurfaceHud({ onExit }) {
     if (!scene) return
     const camera = scene.camera
 
-    // 下降阶段是第三人称观看，不该出现准星、行走提示和着陆点标签
+    // 下降阶段是第三人称观看，不该出现准星、行走提示、着陆点标签和地表数据面板
     const walking = scene.isFirstPerson()
     const locked = walking && scene.firstPerson.isLocked()
+    root.classList.toggle('is-descending', !walking)
     prompt.classList.toggle('is-hidden', !walking || locked)
     reticle.style.opacity = locked ? '0.55' : '0'
     if (!walking) {

@@ -1,4 +1,17 @@
 /* ---- 地表 HUD ---- */
+/*
+ * 下降阶段隐藏地表数据面板：那时人还在空中，"你的体重""地表温度"都还用不上，
+ * 而它会和 EDL 说明面板一起挤占视野。交接到第一人称后再出现。
+ */
+.surface-hud.is-descending .surface-panel {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.surface-panel {
+  transition: opacity 0.4s ease;
+}
+
 .surface-hud {
   position: fixed;
   inset: 0;
