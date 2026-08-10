@@ -1,0 +1,248 @@
+/* ---- 转场遮罩 ---- */
+.transition-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 55%, #ffffff 0%, var(--entry-tint, #ffd9b0) 45%, #ffffff 100%);
+  transition: opacity 0.6s ease-in;
+}
+
+.transition-veil.is-hot {
+  opacity: 1;
+}
+
+.transition-veil.is-cooling {
+  transition: opacity 1s ease-out;
+  opacity: 0;
+}
+
+.transition-caption {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  color: #1a1208;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 17px;
+  letter-spacing: 0.32em;
+  transition: opacity 0.4s ease;
+}
+
+.transition-caption.is-visible {
+  opacity: 0.9;
+}
+
+/* ---- 地表 HUD ---- */
+.surface-hud {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #f2e8dc;
+}
+
+.surface-panel {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.85;
+  background: rgba(10, 8, 6, 0.62);
+  border: 1px solid rgba(255, 220, 190, 0.28);
+  border-radius: 6px;
+  backdrop-filter: blur(6px);
+  white-space: pre;
+}
+
+.surface-place {
+  margin-bottom: 6px;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: #fff;
+}
+
+.surface-place small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: #c8b6a4;
+}
+
+.surface-key {
+  color: #c8b6a4;
+}
+
+.surface-value {
+  color: #fff;
+}
+
+.surface-hint {
+  color: #b09a86;
+}
+
+.surface-exit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 8px 16px;
+  pointer-events: auto;
+  color: #f2e8dc;
+  background: rgba(10, 8, 6, 0.68);
+  border: 1px solid rgba(255, 220, 190, 0.35);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.surface-exit:hover {
+  background: rgba(255, 220, 190, 0.2);
+  color: #fff;
+}
+
+/* 准星 */
+.surface-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  opacity: 0.55;
+}
+
+.surface-reticle::before,
+.surface-reticle::after {
+  content: '';
+  position: absolute;
+  background: #f2e8dc;
+}
+
+.surface-reticle::before {
+  top: 7px;
+  left: 0;
+  width: 16px;
+  height: 1px;
+}
+
+.surface-reticle::after {
+  top: 0;
+  left: 7px;
+  width: 1px;
+  height: 16px;
+}
+
+/* 进入提示（未锁定指针时） */
+.surface-lock-prompt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 40px);
+  padding: 10px 20px;
+  pointer-events: auto;
+  color: #f2e8dc;
+  background: rgba(10, 8, 6, 0.72);
+  border: 1px solid rgba(255, 220, 190, 0.35);
+  border-radius: 6px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.surface-lock-prompt.is-hidden {
+  display: none;
+}
+
+/* 着陆点标记标签 */
+.marker-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: 4px 9px;
+  pointer-events: auto;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #d7fff0;
+  background: rgba(8, 26, 20, 0.72);
+  border: 1px solid rgba(110, 220, 180, 0.5);
+  border-radius: 4px;
+  cursor: pointer;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+.marker-label:hover {
+  background: rgba(20, 60, 46, 0.9);
+  color: #fff;
+}
+
+.marker-label small {
+  display: block;
+  color: #8fc9b4;
+}
+
+/* 着陆点任务卡片 */
+.marker-card {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, 88vw);
+  padding: 14px 18px;
+  pointer-events: auto;
+  background: rgba(10, 8, 6, 0.86);
+  border: 1px solid rgba(255, 220, 190, 0.3);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.marker-card.is-hidden {
+  display: none;
+}
+
+.marker-card h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #fff;
+}
+
+.marker-card h4 small {
+  margin-left: 8px;
+  font-size: 11px;
+  color: #b09a86;
+}
+
+.marker-card .meta {
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: #c8b6a4;
+}
+
+.marker-card p {
+  margin: 0;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #e6d9cb;
+}
+
+.marker-card button {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  color: #c8b6a4;
+  background: transparent;
+  border: 1px solid rgba(255, 220, 190, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+}

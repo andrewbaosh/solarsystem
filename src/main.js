@@ -15,6 +15,8 @@ import { createLabels } from './ui/labels.js'
 import { createSelection } from './ui/selection.js'
 import { createInfoPanel } from './ui/infoPanel.js'
 import { createTimeControls } from './ui/timeControls.js'
+import { createSurfaceHud } from './ui/surfaceHud.js'
+import { createLanding } from './scenes/landing.js'
 import missionsData from '../data/missions.json'
 
 const canvas = document.getElementById('scene')
@@ -56,7 +58,10 @@ const labels = createLabels(bodySystem.bodies, camera)
 let labelsOn = true
 
 handleResize(renderer, camera)
-window.addEventListener('resize', () => setComposerSize(window.innerWidth, window.innerHeight))
+window.addEventListener('resize', () => {
+  setComposerSize(window.innerWidth, window.innerHeight)
+  landing.getSurface()?.resize()
+})
 
 // 起始时间：当前真实时刻（时间源仍然是 J2000 儒略日）
 time.setDate(new Date())
@@ -75,9 +80,28 @@ const infoPanel = createInfoPanel({
   elements: orbitalElements.planets,
   missions: missionsData,
   onClose: () => deselect(),
+  onLand: (body) => landing.enter(body),
+})
+
+// ---- 登陆 / 返回轨道 --------------------------------------------------------
+
+const surfaceHud = createSurfaceHud({ onExit: () => landing.exit() })
+const landing = createLanding({
+  renderer,
+  cameraRig,
+  bodySystem,
+  elements: orbitalElements.planets,
+  missions: missionsData,
+  surfaceHud,
+  onModeChange: (mode) => {
+    // 地表模式下把轨道场景的 UI 全部收起来
+    document.body.classList.toggle('surface-mode', mode === 'surface')
+    if (mode === 'surface') infoPanel.hide()
+  },
 })
 
 function select(body) {
+  if (landing.getMode() === 'surface' || landing.isTransitioning()) return // 地表模式不响应轨道场景的拾取
   if (!body) return deselect()
   cameraRig.flyTo(body)
   infoPanel.show(body, time.getJD())
@@ -105,10 +129,13 @@ window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return
   // 正在日期输入框里打字时，别把空格、R 当成快捷键
   if (timeControls.isEditing()) return
+  // 地表模式下 WASD / 空格属于第一人称控制，不能被轨道场景的快捷键抢走
+  if (landing.getMode() === 'surface' && e.code !== 'Escape') return
 
   switch (e.code) {
     case 'Escape':
-      deselect()
+      // 地表模式下 ESC 由浏览器交还指针，不该顺带取消轨道场景的选中
+      if (landing.getMode() !== 'surface') deselect()
       return
     case 'Space':
       e.preventDefault()
@@ -151,7 +178,7 @@ window.addEventListener('keydown', (e) => {
 if (import.meta.env.DEV) {
   window.__solar = {
     scene, camera, renderer, cameraRig, bodySystem, time, scale, composer, sunLight,
-    hud, infoPanel, timeControls, select, deselect,
+    hud, infoPanel, timeControls, select, deselect, landing, surfaceHud,
   }
 }
 
@@ -163,11 +190,24 @@ renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.1) // 掉帧/切标签页时不要让时间跳变
 
   time.update(dt)
-  bodySystem.update(time.getJD())
-  cameraRig.update(dt)
-  hud.update(dt) // 尺度过渡动画在 HUD 里推进
-  timeControls.update()
-  if (labelsOn) labels.update()
+  landing.update(dt)
 
-  composer.render()
+  const onSurface = landing.getMode() === 'surface'
+
+  // 转场期间两套场景都要继续推进：遮罩后面正在换景，停下来会露馅
+  if (!onSurface || landing.isTransitioning()) {
+    bodySystem.update(time.getJD())
+    cameraRig.update(dt)
+    hud.update(dt) // 尺度过渡动画在 HUD 里推进
+    timeControls.update()
+    if (labelsOn && !onSurface) labels.update()
+  }
+
+  if (onSurface) {
+    const surface = landing.getSurface()
+    surfaceHud.update()
+    renderer.render(surface.scene, surface.camera)
+  } else {
+    composer.render()
+  }
 })

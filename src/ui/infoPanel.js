@@ -67,7 +67,7 @@ function orbitalSummary(body, elements, jd) {
   }
 }
 
-export function createInfoPanel({ elements, missions, onClose }) {
+export function createInfoPanel({ elements, missions, onClose, onLand }) {
   const panel = document.createElement('aside')
   panel.className = 'info-panel'
   panel.innerHTML = `
@@ -80,6 +80,7 @@ export function createInfoPanel({ elements, missions, onClose }) {
       <button class="info-close" type="button" title="关闭 (ESC)">✕</button>
     </div>
     <div class="info-body"></div>
+    <button class="info-land" type="button"></button>
   `
   document.body.appendChild(panel)
 
@@ -87,7 +88,13 @@ export function createInfoPanel({ elements, missions, onClose }) {
   const subtitleEl = panel.querySelector('.info-subtitle')
   const kindEl = panel.querySelector('.info-kind')
   const bodyEl = panel.querySelector('.info-body')
+  const landBtn = panel.querySelector('.info-land')
   panel.querySelector('.info-close').addEventListener('click', () => onClose())
+
+  let current = null
+  landBtn.addEventListener('click', () => {
+    if (current && current.data.surface?.landable) onLand(current)
+  })
 
   function renderAtmosphere(data) {
     const composition = data.atmosphere_composition ?? []
@@ -148,7 +155,16 @@ export function createInfoPanel({ elements, missions, onClose }) {
   }
 
   function show(body, jd) {
+    current = body
     const data = body.data
+
+    // 登陆按钮只对有固体表面的天体可用
+    const surface = data.surface ?? {}
+    landBtn.classList.toggle('is-available', Boolean(surface.landable))
+    landBtn.disabled = !surface.landable
+    landBtn.textContent = surface.landable
+      ? `登陆 ${data.name}　·　${surface.site?.name ?? ''}`
+      : surface.reason ?? '这颗天体没有可站立的固体表面'
     titleEl.textContent = data.name
     subtitleEl.textContent = data.nameEn ?? ''
     kindEl.textContent =

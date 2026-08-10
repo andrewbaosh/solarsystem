@@ -17,7 +17,8 @@
     "surfaceGravityMs2": "m/s²，表面重力加速度",
     "surfaceTempC": "[最低, 最高] 摄氏度；气态巨行星给的是云顶温度，见 surfaceTempNote",
     "atmosphere_composition": "大气成分体积占比（%）。注意与 atmosphere 字段区分：后者是渲染用的辉光参数",
-    "narrative": "第二人称介绍文案，信息面板正文"
+    "narrative": "第二人称介绍文案，信息面板正文",
+    "surface": "地表场景配置：landable 是否可登陆，site 着陆点经纬度，sky 天空与散射，terrain 地形与配色，sunElevationDeg/sunAzimuthDeg 太阳在当地天空的位置"
   },
   "conventions": {
     "axis": "自转轴取向来自 IAU 极点 (α0, δ0)，经 ε=23.43928° 转到黄道坐标系后施加，不是简单绕 Y 轴旋转",
@@ -64,7 +65,11 @@
           "percent": 0.29
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着太阳。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着太阳。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": false,
+        "reason": "气态巨行星与恒星没有可站立的固体表面"
+      }
     },
     {
       "id": "mercury",
@@ -105,7 +110,31 @@
         }
       ],
       "atmosphereNote": "极稀薄的外逸层，总量微不足道",
-      "narrative": "【占位文案，待填写】你正看着水星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着水星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": true,
+        "seed": 2440,
+        "site": {
+          "name": "卡路里盆地边缘",
+          "lat": 30.5,
+          "lon": 170.2
+        },
+        "sunElevationDeg": 38,
+        "sunAzimuthDeg": 120,
+        "sunlightColor": "#fffaf0",
+        "sky": {
+          "type": "space",
+          "starBrightness": 0.42
+        },
+        "terrain": {
+          "groundColor": "#8f8b85",
+          "groundColorVariation": "#5f5c58",
+          "amplitude": 26,
+          "featureScale": 240,
+          "craterDensity": 1,
+          "rockDensity": 0.45
+        }
+      }
     },
     {
       "id": "venus",
@@ -143,7 +172,34 @@
           "percent": 3.5
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着金星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着金星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": true,
+        "seed": 1975,
+        "site": {
+          "name": "金星平原",
+          "lat": 6.5,
+          "lon": 63
+        },
+        "sunElevationDeg": 55,
+        "sunAzimuthDeg": 150,
+        "sunlightColor": "#ffd9a0",
+        "sky": {
+          "type": "atmosphere",
+          "horizon": "#c98a3a",
+          "zenith": "#7a4a1c",
+          "scattering": 1,
+          "fogDensity": 0.0016
+        },
+        "terrain": {
+          "groundColor": "#9a7042",
+          "groundColorVariation": "#6d4a26",
+          "amplitude": 14,
+          "featureScale": 300,
+          "craterDensity": 0.1,
+          "rockDensity": 0.55
+        }
+      }
     },
     {
       "id": "earth",
@@ -196,7 +252,34 @@
           "percent": 0.04
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着地球。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着地球。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": true,
+        "seed": 1969,
+        "site": {
+          "name": "某处高原",
+          "lat": 35,
+          "lon": 100
+        },
+        "sunElevationDeg": 42,
+        "sunAzimuthDeg": 135,
+        "sunlightColor": "#fff6e8",
+        "sky": {
+          "type": "atmosphere",
+          "horizon": "#bcd8f2",
+          "zenith": "#3f7fd0",
+          "scattering": 0.55,
+          "fogDensity": 0.00035
+        },
+        "terrain": {
+          "groundColor": "#7a6e50",
+          "groundColorVariation": "#4d5a38",
+          "amplitude": 32,
+          "featureScale": 280,
+          "craterDensity": 0,
+          "rockDensity": 0.5
+        }
+      }
     },
     {
       "id": "mars",
@@ -244,7 +327,34 @@
           "percent": 0.13
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着火星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着火星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": true,
+        "seed": 2012,
+        "site": {
+          "name": "盖尔陨击坑",
+          "lat": -4.5895,
+          "lon": 137.4417
+        },
+        "sunElevationDeg": 33,
+        "sunAzimuthDeg": 128,
+        "sunlightColor": "#ffe2c4",
+        "sky": {
+          "type": "atmosphere",
+          "horizon": "#d9a273",
+          "zenith": "#9c5f42",
+          "scattering": 0.34,
+          "fogDensity": 0.00055
+        },
+        "terrain": {
+          "groundColor": "#b06a41",
+          "groundColorVariation": "#7f4527",
+          "amplitude": 22,
+          "featureScale": 250,
+          "craterDensity": 0.28,
+          "rockDensity": 0.9
+        }
+      }
     },
     {
       "id": "jupiter",
@@ -277,7 +387,11 @@
           "percent": 10.2
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着木星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着木星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": false,
+        "reason": "气态巨行星与恒星没有可站立的固体表面"
+      }
     },
     {
       "id": "saturn",
@@ -315,7 +429,11 @@
           "percent": 3.25
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着土星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着土星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": false,
+        "reason": "气态巨行星与恒星没有可站立的固体表面"
+      }
     },
     {
       "id": "uranus",
@@ -352,7 +470,11 @@
           "percent": 2.3
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着天王星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着天王星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": false,
+        "reason": "气态巨行星与恒星没有可站立的固体表面"
+      }
     },
     {
       "id": "neptune",
@@ -390,7 +512,11 @@
           "percent": 1.5
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着海王星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。"
+      "narrative": "【占位文案，待填写】你正看着海王星。这里将来会放一段第二人称的介绍——写它为什么值得看，而不是复述上面那张参数表。",
+      "surface": {
+        "landable": false,
+        "reason": "气态巨行星与恒星没有可站立的固体表面"
+      }
     }
   ],
   "background": {

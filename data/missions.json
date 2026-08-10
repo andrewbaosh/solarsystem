@@ -3,7 +3,8 @@
     "launchDate": "ISO 日期（UTC），发射时刻",
     "arrivalDate": "ISO 日期（UTC）。飞掠取最接近时刻，环绕取入轨时刻，着陆取触地时刻；尚未抵达的填计划时间并把 status 设为 enroute",
     "type": "任务类型键，对应 types 字典",
-    "status": "success | partial | failed | enroute"
+    "status": "success | partial | failed | enroute",
+    "landingSite": "着陆点真实经纬度（行星坐标，东经为正），地表场景据此按大圆距离与方位角摆放标记"
   },
   "types": {
     "flyby": "飞掠",
@@ -178,7 +179,12 @@
         "status": "success",
         "launchDate": "2011-11-26",
         "arrivalDate": "2012-08-06",
-        "description": "空中吊车着陆，在盖尔陨击坑证实那里曾有可宜居的湖泊环境。"
+        "description": "空中吊车着陆，在盖尔陨击坑证实那里曾有可宜居的湖泊环境。",
+        "landingSite": {
+          "lat": -4.5895,
+          "lon": 137.4417,
+          "name": "盖尔陨击坑"
+        }
       },
       {
         "name": "曼加里安",
@@ -222,7 +228,12 @@
         "status": "success",
         "launchDate": "2018-05-05",
         "arrivalDate": "2018-11-26",
-        "description": "第一次听到火星地震，据此测出了它的地核大小。"
+        "description": "第一次听到火星地震，据此测出了它的地核大小。",
+        "landingSite": {
+          "lat": 4.5024,
+          "lon": 135.6234,
+          "name": "埃律西昂平原"
+        }
       },
       {
         "name": "希望号",
@@ -255,7 +266,12 @@
         "status": "success",
         "launchDate": "2020-07-30",
         "arrivalDate": "2021-02-18",
-        "description": "在耶泽罗三角洲采集岩芯等待取回，并放飞了机智号直升机。"
+        "description": "在耶泽罗三角洲采集岩芯等待取回，并放飞了机智号直升机。",
+        "landingSite": {
+          "lat": 18.4447,
+          "lon": 77.4508,
+          "name": "耶泽罗陨击坑"
+        }
       }
     ],
     "jupiter": [

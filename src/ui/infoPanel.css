@@ -80,6 +80,33 @@
   padding: 16px 18px 32px;
 }
 
+.info-land {
+  flex: none;
+  margin: 0;
+  padding: 14px 18px;
+  color: #7f93b5;
+  background: rgba(120, 160, 220, 0.06);
+  border: none;
+  border-top: 1px solid rgba(120, 160, 220, 0.2);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  cursor: not-allowed;
+}
+
+.info-land.is-available {
+  color: #d7fff0;
+  background: rgba(40, 120, 95, 0.28);
+  border-top-color: rgba(110, 220, 180, 0.45);
+  cursor: pointer;
+}
+
+.info-land.is-available:hover {
+  background: rgba(60, 165, 130, 0.42);
+  color: #fff;
+}
+
 .info-section {
   margin-bottom: 22px;
 }

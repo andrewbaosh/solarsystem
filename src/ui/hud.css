@@ -75,3 +75,13 @@ body.info-open .hud-bottom-right {
 .hud-warn {
   color: #ffb347;
 }
+
+/* 地表模式：轨道场景的 UI 全部收起 */
+body.surface-mode .hud,
+body.surface-mode .time-bar,
+body.surface-mode .labels,
+body.surface-mode .info-panel {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}

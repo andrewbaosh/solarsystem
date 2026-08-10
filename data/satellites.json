@@ -15,7 +15,8 @@
     "massKg": "kg",
     "surfaceGravityMs2": "m/s²",
     "surfaceTempC": "[最低, 最高] 摄氏度",
-    "narrative": "第二人称介绍文案，信息面板正文"
+    "narrative": "第二人称介绍文案，信息面板正文",
+    "surface": "地表场景配置，结构同 planets.json"
   },
   "frames": {
     "ecliptic": "J2000 黄道面",
@@ -67,7 +68,31 @@
       ],
       "atmosphere_composition": [],
       "atmosphereNote": "几乎没有大气，仅有痕量外逸层",
-      "narrative": "【占位文案，待填写】你正看着月球。这里将来会放一段第二人称的介绍。"
+      "narrative": "【占位文案，待填写】你正看着月球。这里将来会放一段第二人称的介绍。",
+      "surface": {
+        "landable": true,
+        "seed": 1969,
+        "site": {
+          "name": "静海基地",
+          "lat": 0.674,
+          "lon": 23.473
+        },
+        "sunElevationDeg": 22,
+        "sunAzimuthDeg": 110,
+        "sunlightColor": "#fffdf8",
+        "sky": {
+          "type": "space",
+          "starBrightness": 0.55
+        },
+        "terrain": {
+          "groundColor": "#8e8b86",
+          "groundColorVariation": "#5a5854",
+          "amplitude": 24,
+          "featureScale": 230,
+          "craterDensity": 1,
+          "rockDensity": 0.6
+        }
+      }
     },
     {
       "id": "io",
@@ -107,7 +132,31 @@
         }
       ],
       "atmosphereNote": "火山喷发维持的极稀薄大气",
-      "narrative": "【占位文案，待填写】你正看着木卫一。这里将来会放一段第二人称的介绍。"
+      "narrative": "【占位文案，待填写】你正看着木卫一。这里将来会放一段第二人称的介绍。",
+      "surface": {
+        "landable": true,
+        "seed": 1979,
+        "site": {
+          "name": "洛基火山口附近",
+          "lat": 12.5,
+          "lon": 309
+        },
+        "sunElevationDeg": 30,
+        "sunAzimuthDeg": 140,
+        "sunlightColor": "#fff4d8",
+        "sky": {
+          "type": "space",
+          "starBrightness": 0.5
+        },
+        "terrain": {
+          "groundColor": "#d6c05a",
+          "groundColorVariation": "#8f6a2a",
+          "amplitude": 30,
+          "featureScale": 260,
+          "craterDensity": 0.05,
+          "rockDensity": 0.7
+        }
+      }
     },
     {
       "id": "europa",
@@ -147,7 +196,31 @@
         }
       ],
       "atmosphereNote": "辐射分解冰产生的痕量氧",
-      "narrative": "【占位文案，待填写】你正看着木卫二。这里将来会放一段第二人称的介绍。"
+      "narrative": "【占位文案，待填写】你正看着木卫二。这里将来会放一段第二人称的介绍。",
+      "surface": {
+        "landable": true,
+        "seed": 1996,
+        "site": {
+          "name": "康纳马拉混沌区",
+          "lat": -1.5,
+          "lon": 274
+        },
+        "sunElevationDeg": 26,
+        "sunAzimuthDeg": 150,
+        "sunlightColor": "#f2f6ff",
+        "sky": {
+          "type": "space",
+          "starBrightness": 0.6
+        },
+        "terrain": {
+          "groundColor": "#cdd8e2",
+          "groundColorVariation": "#8fa3b5",
+          "amplitude": 12,
+          "featureScale": 200,
+          "craterDensity": 0.08,
+          "rockDensity": 0.35
+        }
+      }
     },
     {
       "id": "ganymede",
@@ -187,7 +260,31 @@
         }
       ],
       "atmosphereNote": "痕量",
-      "narrative": "【占位文案，待填写】你正看着木卫三。这里将来会放一段第二人称的介绍。"
+      "narrative": "【占位文案，待填写】你正看着木卫三。这里将来会放一段第二人称的介绍。",
+      "surface": {
+        "landable": true,
+        "seed": 2031,
+        "site": {
+          "name": "伽利略区",
+          "lat": 35,
+          "lon": 180
+        },
+        "sunElevationDeg": 28,
+        "sunAzimuthDeg": 130,
+        "sunlightColor": "#f6f2ea",
+        "sky": {
+          "type": "space",
+          "starBrightness": 0.55
+        },
+        "terrain": {
+          "groundColor": "#9c9084",
+          "groundColorVariation": "#6a6157",
+          "amplitude": 20,
+          "featureScale": 240,
+          "craterDensity": 0.6,
+          "rockDensity": 0.5
+        }
+      }
     },
     {
       "id": "callisto",
@@ -231,7 +328,31 @@
         }
       ],
       "atmosphereNote": "痕量",
-      "narrative": "【占位文案，待填写】你正看着木卫四。这里将来会放一段第二人称的介绍。"
+      "narrative": "【占位文案，待填写】你正看着木卫四。这里将来会放一段第二人称的介绍。",
+      "surface": {
+        "landable": true,
+        "seed": 1974,
+        "site": {
+          "name": "瓦尔哈拉盆地",
+          "lat": 17,
+          "lon": 57
+        },
+        "sunElevationDeg": 24,
+        "sunAzimuthDeg": 125,
+        "sunlightColor": "#f4f0e8",
+        "sky": {
+          "type": "space",
+          "starBrightness": 0.6
+        },
+        "terrain": {
+          "groundColor": "#6f6257",
+          "groundColorVariation": "#463d35",
+          "amplitude": 26,
+          "featureScale": 250,
+          "craterDensity": 1.2,
+          "rockDensity": 0.55
+        }
+      }
     },
     {
       "id": "titan",
@@ -284,7 +405,34 @@
           "percent": 0.1
         }
       ],
-      "narrative": "【占位文案，待填写】你正看着土卫六。这里将来会放一段第二人称的介绍。"
+      "narrative": "【占位文案，待填写】你正看着土卫六。这里将来会放一段第二人称的介绍。",
+      "surface": {
+        "landable": true,
+        "seed": 2005,
+        "site": {
+          "name": "惠更斯着陆点",
+          "lat": -10.3,
+          "lon": 192.3
+        },
+        "sunElevationDeg": 35,
+        "sunAzimuthDeg": 140,
+        "sunlightColor": "#ffd9a8",
+        "sky": {
+          "type": "atmosphere",
+          "horizon": "#c9843c",
+          "zenith": "#8a5320",
+          "scattering": 0.95,
+          "fogDensity": 0.0012
+        },
+        "terrain": {
+          "groundColor": "#8a6636",
+          "groundColorVariation": "#5d4322",
+          "amplitude": 10,
+          "featureScale": 320,
+          "craterDensity": 0.05,
+          "rockDensity": 0.8
+        }
+      }
     }
   ]
 }
