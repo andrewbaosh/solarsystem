@@ -106,7 +106,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 40px);
+  /* 下移一些，免得压住刚落地的着陆器 */
+  transform: translate(-50%, 150px);
   padding: 10px 20px;
   pointer-events: auto;
   color: #f2e8dc;

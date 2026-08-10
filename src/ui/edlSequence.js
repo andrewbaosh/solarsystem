@@ -152,6 +152,19 @@ export function createEdlSequence({ onSkip }) {
     return running
   }
 
+  /** 当前进度，供地表场景把下降动画和时序对齐 */
+  function getProgress() {
+    if (!profile || index < 0) return null
+    const step = profile.steps[index]
+    return {
+      index,
+      t: Math.min(1, elapsed / step.hold),
+      step,
+      next: profile.steps[index + 1] ?? null,
+      running,
+    }
+  }
+
   /** 返回轨道用的简单遮罩，不走时序 */
   function fadeOut(style, tint) {
     veil.className = `edl-veil style-${style ?? 'plasma'}`
@@ -167,5 +180,5 @@ export function createEdlSequence({ onSkip }) {
     veil.style.setProperty('--entry-tint', tint)
   }
 
-  return { start, update, skip, finish, isRunning, setVeilOpacity, setTint, fadeOut }
+  return { start, update, skip, finish, isRunning, getProgress, setVeilOpacity, setTint, fadeOut }
 }

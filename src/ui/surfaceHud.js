@@ -98,9 +98,16 @@ export function createSurfaceHud({ onExit }) {
   function update() {
     if (!scene) return
     const camera = scene.camera
-    const locked = scene.firstPerson.isLocked()
-    prompt.classList.toggle('is-hidden', locked)
+
+    // 下降阶段是第三人称观看，不该出现准星、行走提示和着陆点标签
+    const walking = scene.isFirstPerson()
+    const locked = walking && scene.firstPerson.isLocked()
+    prompt.classList.toggle('is-hidden', !walking || locked)
     reticle.style.opacity = locked ? '0.55' : '0'
+    if (!walking) {
+      for (const el of labels.values()) el.style.display = 'none'
+      return
+    }
 
     const w = window.innerWidth
     const h = window.innerHeight

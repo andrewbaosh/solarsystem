@@ -16,6 +16,8 @@ import { createEdlSequence } from '../ui/edlSequence.js'
 const EXIT_VEIL_IN = 0.9
 const EXIT_HOLD = 0.2
 const EXIT_VEIL_OUT = 1.0
+/** 触地到镜头交接之间的停留，单位秒 */
+const TOUCHDOWN_HOLD = 2.0
 
 export function createLanding({
   renderer,
@@ -32,18 +34,49 @@ export function createLanding({
   let mode = 'orbit' // 'orbit' | 'surface'
   let surface = null
   let exitPhase = null // 返回轨道用的简单遮罩时序
+  let touchdownHold = 0
 
   function isLandable(body) {
     return Boolean(body?.data?.surface?.landable) && Boolean(edlProfiles[body.data.id])
   }
 
   function buildSurface(body) {
-    surface = createSurfaceScene({ body, elements, missions, renderer })
+    surface = createSurfaceScene({
+      body,
+      elements,
+      missions,
+      renderer,
+      edlProfile: edlProfiles[body.data.id],
+    })
     surface.body = body
     surfaceHud.attach(surface)
     surfaceHud.show()
     mode = 'surface'
     onModeChange('surface')
+  }
+
+  /**
+   * 把时序进度换算成着陆器的下降状态。
+   * y 与 tether 在相邻阶段之间插值（连续的下降动作），
+   * chute / plume 是开关量，直接取当前阶段的值。
+   */
+  function syncDescent() {
+    if (!surface || surface.getMode() !== 'descent') return
+    const p = sequence.getProgress()
+    if (!p?.step?.viz) return
+    const a = p.step.viz
+    const b = p.next?.viz ?? a
+    const lerp = (key) => {
+      const from = a[key] ?? 0
+      const to = b[key] ?? 0
+      return from + (to - from) * p.t
+    }
+    surface.setDescentState({
+      y: lerp('y'),
+      tether: lerp('tether'),
+      chute: a.chute ?? 0,
+      plume: a.plume ?? 0,
+    })
   }
 
   function teardownSurface() {
@@ -55,6 +88,7 @@ export function createLanding({
   function enter(body) {
     if (exitPhase || sequence.isRunning() || mode === 'surface' || !isLandable(body)) return
 
+    touchdownHold = 0
     sequence.setTint(body.data.surface.sky?.horizon ?? '#ffffff')
     const started = sequence.start(body.data.id, edlProfiles, () => buildSurface(body))
     if (!started) return
@@ -80,9 +114,16 @@ export function createLanding({
   }
 
   function update(dt) {
-    if (surface && mode === 'surface') surface.update(dt)
-
     sequence.update(dt)
+    syncDescent()
+
+    // 触地后在第三人称多停一会儿，让人看清着陆器停稳的样子，再交接镜头
+    if (surface && surface.getMode() === 'descent' && !sequence.isRunning()) {
+      touchdownHold += dt
+      if (touchdownHold >= TOUCHDOWN_HOLD) surface.beginFirstPerson()
+    }
+
+    if (surface && mode === 'surface') surface.update(dt)
 
     if (!exitPhase) return
     exitPhase.t += dt
