@@ -1,0 +1,388 @@
+{
+  "units": {
+    "launchDate": "ISO 日期（UTC），发射时刻",
+    "arrivalDate": "ISO 日期（UTC）。飞掠取最接近时刻，环绕取入轨时刻，着陆取触地时刻；尚未抵达的填计划时间并把 status 设为 enroute",
+    "type": "任务类型键，对应 types 字典",
+    "status": "success | partial | failed | enroute"
+  },
+  "types": {
+    "flyby": "飞掠",
+    "orbiter": "环绕",
+    "lander": "着陆",
+    "rover": "巡视",
+    "impactor": "撞击"
+  },
+  "statuses": {
+    "success": "成功",
+    "partial": "部分成功",
+    "failed": "失败",
+    "enroute": "飞行中"
+  },
+  "note": "本阶段只填火星与木星系统，其余天体留空数组，后续按同一结构补充",
+  "missions": {
+    "sun": [],
+    "mercury": [],
+    "venus": [],
+    "earth": [],
+    "moon": [],
+    "mars": [
+      {
+        "name": "水手 4 号",
+        "nameEn": "Mariner 4",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1964-11-28",
+        "arrivalDate": "1965-07-15",
+        "description": "人类第一次近距离拍到火星，21 张照片击碎了运河与文明的想象。"
+      },
+      {
+        "name": "水手 9 号",
+        "nameEn": "Mariner 9",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "1971-05-30",
+        "arrivalDate": "1971-11-14",
+        "description": "第一颗环绕其他行星的探测器，抵达时正赶上全球沙尘暴。"
+      },
+      {
+        "name": "火星 3 号",
+        "nameEn": "Mars 3",
+        "agency": "苏联科学院",
+        "country": "苏联",
+        "type": "lander",
+        "status": "partial",
+        "launchDate": "1971-05-28",
+        "arrivalDate": "1971-12-02",
+        "description": "人类第一次在火星软着陆，传回 14.5 秒信号后失联。"
+      },
+      {
+        "name": "海盗 1 号",
+        "nameEn": "Viking 1",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "lander",
+        "status": "success",
+        "launchDate": "1975-08-20",
+        "arrivalDate": "1976-07-20",
+        "description": "第一次在火星表面长期工作，做了至今仍有争议的生命探测实验。"
+      },
+      {
+        "name": "海盗 2 号",
+        "nameEn": "Viking 2",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "lander",
+        "status": "success",
+        "launchDate": "1975-09-09",
+        "arrivalDate": "1976-09-03",
+        "description": "在乌托邦平原着陆，拍下了第一张火星霜冻照片。"
+      },
+      {
+        "name": "火星探路者 / 旅居者号",
+        "nameEn": "Mars Pathfinder / Sojourner",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "rover",
+        "status": "success",
+        "launchDate": "1996-12-04",
+        "arrivalDate": "1997-07-04",
+        "description": "气囊弹跳着陆，放出人类在另一颗行星上的第一辆巡视车。"
+      },
+      {
+        "name": "火星全球勘测者",
+        "nameEn": "Mars Global Surveyor",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "1996-11-07",
+        "arrivalDate": "1997-09-12",
+        "description": "绘制了第一份全球高程图，发现了残余磁场条带。"
+      },
+      {
+        "name": "火星奥德赛",
+        "nameEn": "2001 Mars Odyssey",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "2001-04-07",
+        "arrivalDate": "2001-10-24",
+        "description": "探测到浅层地下的大量氢，指向广布的水冰；至今仍在服役。"
+      },
+      {
+        "name": "火星快车",
+        "nameEn": "Mars Express",
+        "agency": "ESA",
+        "country": "欧洲",
+        "type": "orbiter",
+        "status": "partial",
+        "launchDate": "2003-06-02",
+        "arrivalDate": "2003-12-25",
+        "description": "轨道器成功运行至今，携带的猎兔犬 2 号着陆器失联。"
+      },
+      {
+        "name": "勇气号",
+        "nameEn": "Spirit (MER-A)",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "rover",
+        "status": "success",
+        "launchDate": "2003-06-10",
+        "arrivalDate": "2004-01-04",
+        "description": "设计寿命 90 天，实际工作六年，最后陷在沙地里。"
+      },
+      {
+        "name": "机遇号",
+        "nameEn": "Opportunity (MER-B)",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "rover",
+        "status": "success",
+        "launchDate": "2003-07-08",
+        "arrivalDate": "2004-01-25",
+        "description": "跑了 45 公里、工作近 15 年，找到了水存在过的确凿矿物证据。"
+      },
+      {
+        "name": "火星勘测轨道器",
+        "nameEn": "Mars Reconnaissance Orbiter",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "2005-08-12",
+        "arrivalDate": "2006-03-10",
+        "description": "HiRISE 相机把火星表面分辨到 30 厘米，至今是着陆选址的主力。"
+      },
+      {
+        "name": "凤凰号",
+        "nameEn": "Phoenix",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "lander",
+        "status": "success",
+        "launchDate": "2007-08-04",
+        "arrivalDate": "2008-05-25",
+        "description": "在北极地区挖到了白色的水冰，几天后它就升华消失了。"
+      },
+      {
+        "name": "好奇号",
+        "nameEn": "Curiosity (MSL)",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "rover",
+        "status": "success",
+        "launchDate": "2011-11-26",
+        "arrivalDate": "2012-08-06",
+        "description": "空中吊车着陆，在盖尔陨击坑证实那里曾有可宜居的湖泊环境。"
+      },
+      {
+        "name": "曼加里安",
+        "nameEn": "Mars Orbiter Mission",
+        "agency": "ISRO",
+        "country": "印度",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "2013-11-05",
+        "arrivalDate": "2014-09-24",
+        "description": "第一次尝试火星就成功入轨，成本低于同期一部科幻电影。"
+      },
+      {
+        "name": "MAVEN",
+        "nameEn": "MAVEN",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "2013-11-18",
+        "arrivalDate": "2014-09-22",
+        "description": "专门测量大气逃逸，解释了火星怎么把自己的空气弄丢的。"
+      },
+      {
+        "name": "ExoMars 微量气体轨道器",
+        "nameEn": "ExoMars Trace Gas Orbiter",
+        "agency": "ESA / Roscosmos",
+        "country": "欧洲 / 俄罗斯",
+        "type": "orbiter",
+        "status": "partial",
+        "launchDate": "2016-03-14",
+        "arrivalDate": "2016-10-19",
+        "description": "轨道器正常工作，夏帕瑞丽着陆器因高度计误判而坠毁。"
+      },
+      {
+        "name": "洞察号",
+        "nameEn": "InSight",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "lander",
+        "status": "success",
+        "launchDate": "2018-05-05",
+        "arrivalDate": "2018-11-26",
+        "description": "第一次听到火星地震，据此测出了它的地核大小。"
+      },
+      {
+        "name": "希望号",
+        "nameEn": "Hope (Al-Amal)",
+        "agency": "MBRSC",
+        "country": "阿联酋",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "2020-07-19",
+        "arrivalDate": "2021-02-09",
+        "description": "阿拉伯世界第一个星际探测器，专注火星全球气象。"
+      },
+      {
+        "name": "天问一号 / 祝融号",
+        "nameEn": "Tianwen-1 / Zhurong",
+        "agency": "CNSA",
+        "country": "中国",
+        "type": "rover",
+        "status": "success",
+        "launchDate": "2020-07-23",
+        "arrivalDate": "2021-05-15",
+        "description": "一次任务同时完成环绕、着陆、巡视，祝融号在乌托邦平原南部着陆。"
+      },
+      {
+        "name": "毅力号",
+        "nameEn": "Perseverance",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "rover",
+        "status": "success",
+        "launchDate": "2020-07-30",
+        "arrivalDate": "2021-02-18",
+        "description": "在耶泽罗三角洲采集岩芯等待取回，并放飞了机智号直升机。"
+      }
+    ],
+    "jupiter": [
+      {
+        "name": "先驱者 10 号",
+        "nameEn": "Pioneer 10",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1972-03-03",
+        "arrivalDate": "1973-12-03",
+        "description": "第一个穿越小行星带并抵达木星的探测器，实测了那里的强辐射带。"
+      },
+      {
+        "name": "先驱者 11 号",
+        "nameEn": "Pioneer 11",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1973-04-06",
+        "arrivalDate": "1974-12-03",
+        "description": "借木星引力甩向土星，顺便近距离掠过大红斑。"
+      },
+      {
+        "name": "旅行者 1 号",
+        "nameEn": "Voyager 1",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1977-09-05",
+        "arrivalDate": "1979-03-05",
+        "description": "发现木卫一上的活火山——地球之外第一处已知的活跃火山活动。"
+      },
+      {
+        "name": "旅行者 2 号",
+        "nameEn": "Voyager 2",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1977-08-20",
+        "arrivalDate": "1979-07-09",
+        "description": "补拍了木卫二的裂纹表面，第一次让人怀疑冰壳下有海。"
+      },
+      {
+        "name": "尤利西斯号",
+        "nameEn": "Ulysses",
+        "agency": "NASA / ESA",
+        "country": "美国 / 欧洲",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1990-10-06",
+        "arrivalDate": "1992-02-08",
+        "description": "借木星引力把自己甩出黄道面，去看太阳的两极。"
+      },
+      {
+        "name": "伽利略号",
+        "nameEn": "Galileo",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "1989-10-18",
+        "arrivalDate": "1995-12-07",
+        "description": "第一颗木星轨道器，释放的探测器直接扎进木星大气传回数据。"
+      },
+      {
+        "name": "卡西尼号",
+        "nameEn": "Cassini",
+        "agency": "NASA / ESA",
+        "country": "美国 / 欧洲",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "1997-10-15",
+        "arrivalDate": "2000-12-30",
+        "description": "赴土星途中掠过木星，与伽利略号做了一次双探测器联合观测。"
+      },
+      {
+        "name": "新视野号",
+        "nameEn": "New Horizons",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "flyby",
+        "status": "success",
+        "launchDate": "2006-01-19",
+        "arrivalDate": "2007-02-28",
+        "description": "借木星加速冲向冥王星，途中拍到木卫一的火山羽流。"
+      },
+      {
+        "name": "朱诺号",
+        "nameEn": "Juno",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "success",
+        "launchDate": "2011-08-05",
+        "arrivalDate": "2016-07-05",
+        "description": "极轨反复俯冲，测出木星没有传统意义上的固体核心。"
+      },
+      {
+        "name": "JUICE",
+        "nameEn": "Jupiter Icy Moons Explorer",
+        "agency": "ESA",
+        "country": "欧洲",
+        "type": "orbiter",
+        "status": "enroute",
+        "launchDate": "2023-04-14",
+        "arrivalDate": "2031-07-01",
+        "description": "目标是最终环绕木卫三，成为第一颗环绕其他行星卫星的探测器。"
+      },
+      {
+        "name": "欧罗巴快船",
+        "nameEn": "Europa Clipper",
+        "agency": "NASA",
+        "country": "美国",
+        "type": "orbiter",
+        "status": "enroute",
+        "launchDate": "2024-10-14",
+        "arrivalDate": "2030-04-01",
+        "description": "计划对木卫二做近 50 次飞掠，评估冰壳下海洋的宜居性。"
+      }
+    ],
+    "saturn": [],
+    "uranus": [],
+    "neptune": []
+  }
+}

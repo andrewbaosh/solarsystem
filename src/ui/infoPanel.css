@@ -1,0 +1,258 @@
+.info-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 30;
+  width: min(400px, 92vw);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #cfe3ff;
+  background: linear-gradient(to left, rgba(6, 10, 20, 0.96), rgba(6, 10, 20, 0.9));
+  border-left: 1px solid rgba(120, 160, 220, 0.28);
+  backdrop-filter: blur(8px);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  transform: translateX(100%);
+  transition: transform 0.42s cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: auto;
+}
+
+.info-panel.is-open {
+  transform: translateX(0);
+}
+
+.info-head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(120, 160, 220, 0.2);
+}
+
+.info-title {
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+
+.info-subtitle {
+  margin-top: 3px;
+  font-size: 11px;
+  color: #8fa6c8;
+  letter-spacing: 0.14em;
+}
+
+.info-kind {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: #b9d2f5;
+  border: 1px solid rgba(120, 160, 220, 0.45);
+  border-radius: 999px;
+}
+
+.info-close {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+  line-height: 1;
+  color: #b9d2f5;
+  background: transparent;
+  border: 1px solid rgba(120, 160, 220, 0.35);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.info-close:hover {
+  background: rgba(120, 160, 220, 0.18);
+  color: #fff;
+}
+
+.info-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px 32px;
+}
+
+.info-section {
+  margin-bottom: 22px;
+}
+
+.info-section-title {
+  margin-bottom: 9px;
+  padding-bottom: 5px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #7f93b5;
+  border-bottom: 1px solid rgba(120, 160, 220, 0.16);
+}
+
+.info-narrative {
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #dbe8fb;
+}
+
+.info-narrative.is-placeholder {
+  color: #8fa6c8;
+  font-style: italic;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 5px 0;
+  border-bottom: 1px dashed rgba(120, 160, 220, 0.1);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-key {
+  flex: none;
+  color: #8fa6c8;
+}
+
+.info-value {
+  text-align: right;
+  color: #fff;
+  word-break: break-word;
+}
+
+.info-note {
+  margin-top: 7px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #7f93b5;
+}
+
+/* ---- 大气成分条 ---- */
+.gas-bar {
+  display: flex;
+  height: 7px;
+  margin: 9px 0 8px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(120, 160, 220, 0.12);
+}
+
+.gas-bar span {
+  display: block;
+  height: 100%;
+}
+
+.gas-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11px;
+  color: #b9d2f5;
+}
+
+.gas-legend i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 2px;
+  font-style: normal;
+}
+
+/* ---- 时间轴 ---- */
+.timeline {
+  position: relative;
+  margin-left: 6px;
+  padding-left: 20px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 3px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(120, 160, 220, 0.08),
+    rgba(120, 160, 220, 0.5),
+    rgba(120, 160, 220, 0.08)
+  );
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 18px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: -21px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0a0f1a;
+  border: 1.5px solid var(--dot, #6f9bd8);
+}
+
+.timeline-date {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #7f93b5;
+}
+
+.timeline-name {
+  margin: 2px 0 1px;
+  font-size: 13px;
+  color: #fff;
+}
+
+.timeline-name small {
+  margin-left: 6px;
+  font-size: 10px;
+  color: #7f93b5;
+}
+
+.timeline-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 5px 0 6px;
+}
+
+.timeline-tag {
+  padding: 1px 7px;
+  font-size: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 160, 220, 0.35);
+  color: #b9d2f5;
+}
+
+.timeline-tag.status-success { border-color: rgba(110, 210, 150, 0.5); color: #8fe0b0; }
+.timeline-tag.status-partial { border-color: rgba(255, 190, 90, 0.5); color: #ffc978; }
+.timeline-tag.status-failed  { border-color: rgba(255, 120, 120, 0.5); color: #ff9a9a; }
+.timeline-tag.status-enroute { border-color: rgba(130, 180, 255, 0.5); color: #9cc4ff; }
+
+.timeline-desc {
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #b9c9de;
+}
+
+.timeline-empty {
+  padding: 10px 0;
+  color: #7f93b5;
+  line-height: 1.8;
+}

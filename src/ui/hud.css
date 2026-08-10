@@ -1,0 +1,77 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #05070d;
+}
+
+#scene {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.hud {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #cfe3ff;
+  background: rgba(6, 10, 20, 0.55);
+  border: 1px solid rgba(120, 160, 220, 0.25);
+  border-radius: 4px;
+  padding: 8px 12px;
+  white-space: pre;
+}
+
+.hud-top-left {
+  top: 12px;
+  left: 12px;
+}
+
+.hud-bottom-left {
+  bottom: 12px;
+  left: 12px;
+}
+
+.hud-bottom-right {
+  bottom: 12px;
+  right: 12px;
+  color: #8fa6c8;
+  transition: opacity 0.3s ease;
+}
+
+body.info-open {
+  --panel-shift: min(200px, 46vw);
+}
+
+/* 面板展开时快捷键提示让位：它和左移后的时间条会撞在一起，
+   而且此刻用户在读资料，不需要这张速查表 */
+body.info-open .hud-bottom-right {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hud-key {
+  color: #7f93b5;
+}
+
+.hud-value {
+  color: #ffffff;
+}
+
+.hud-warn {
+  color: #ffb347;
+}

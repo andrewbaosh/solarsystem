@@ -1,0 +1,290 @@
+{
+  "source": {
+    "moon": "Meeus, Astronomical Algorithms（月球平黄经/近地点/升交点的 J2000 历元值与日变率）",
+    "galilean": "JPL Planetary Satellite Mean Elements（半长轴、离心率、相对木星赤道的倾角、轨道周期）",
+    "physical": "NASA Planetary Satellite Physical Parameters"
+  },
+  "units": {
+    "aKm": "km，相对母天体的半长轴",
+    "e": "无量纲",
+    "iDeg": "deg，相对 frame 指定的参考面的倾角",
+    "L": "[历元平黄经 deg, 日变率 deg/day]",
+    "peri": "[历元近点黄经 ϖ deg, 日变率 deg/day]",
+    "node": "[历元升交点黄经 Ω deg, 日变率 deg/day]",
+    "rotationPeriodHours": "小时；tidallyLocked 为 true 时该值仅作记录，朝向由潮汐锁定直接求解",
+    "massKg": "kg",
+    "surfaceGravityMs2": "m/s²",
+    "surfaceTempC": "[最低, 最高] 摄氏度",
+    "narrative": "第二人称介绍文案，信息面板正文"
+  },
+  "frames": {
+    "ecliptic": "J2000 黄道面",
+    "parentEquator": "母天体的赤道面（由母天体的 IAU 极点定义），伽利略卫星的倾角是相对木星赤道给出的"
+  },
+  "accuracy": {
+    "moon": "历元要素与变率取自标准解析理论，长期位置精度足够本项目使用（未含月球运动的主要周期摄动项）",
+    "galilean": "半长轴、离心率、倾角、周期均为实测值；但历元平黄经 L[0] 是近似值，未经星历核对——四颗卫星之间的相对相位不保证准确，轨道尺寸/周期/共振比例是准确的",
+    "titan": "轨道要素为实测值；历元平黄经同样是近似值。Solar System Scope 贴图包不含土卫六贴图，故仍为纯色球，但按要求加了大气辉光"
+  },
+  "satellites": [
+    {
+      "id": "moon",
+      "name": "月球",
+      "nameEn": "Moon",
+      "parent": "earth",
+      "frame": "ecliptic",
+      "aKm": 384400,
+      "e": 0.0549,
+      "iDeg": 5.145,
+      "L": [
+        218.3164477,
+        13.17639648
+      ],
+      "peri": [
+        83.3532465,
+        0.11140408
+      ],
+      "node": [
+        125.0445479,
+        -0.0529538
+      ],
+      "radiusKm": 1737.4,
+      "rotationPeriodHours": 655.728,
+      "tidallyLocked": true,
+      "poleRA": 269.9949,
+      "poleDec": 66.5392,
+      "color": "#b9b6b0",
+      "textures": {
+        "map": "2k_moon.jpg",
+        "derivedNormalFrom": "2k_moon.jpg",
+        "derivedNormalStrength": 1
+      },
+      "massKg": 7.342e+22,
+      "surfaceGravityMs2": 1.62,
+      "surfaceTempC": [
+        -173,
+        127
+      ],
+      "atmosphere_composition": [],
+      "atmosphereNote": "几乎没有大气，仅有痕量外逸层",
+      "narrative": "【占位文案，待填写】你正看着月球。这里将来会放一段第二人称的介绍。"
+    },
+    {
+      "id": "io",
+      "name": "木卫一",
+      "nameEn": "Io",
+      "parent": "jupiter",
+      "frame": "parentEquator",
+      "aKm": 421800,
+      "e": 0.0041,
+      "iDeg": 0.036,
+      "L": [
+        200.39,
+        203.48892
+      ],
+      "peri": [
+        0,
+        0
+      ],
+      "node": [
+        0,
+        0
+      ],
+      "radiusKm": 1821.6,
+      "rotationPeriodHours": 42.459,
+      "tidallyLocked": true,
+      "color": "#d8c15a",
+      "massKg": 8.932e+22,
+      "surfaceGravityMs2": 1.796,
+      "surfaceTempC": [
+        -183,
+        -143
+      ],
+      "atmosphere_composition": [
+        {
+          "gas": "二氧化硫",
+          "percent": 90
+        }
+      ],
+      "atmosphereNote": "火山喷发维持的极稀薄大气",
+      "narrative": "【占位文案，待填写】你正看着木卫一。这里将来会放一段第二人称的介绍。"
+    },
+    {
+      "id": "europa",
+      "name": "木卫二",
+      "nameEn": "Europa",
+      "parent": "jupiter",
+      "frame": "parentEquator",
+      "aKm": 671100,
+      "e": 0.0094,
+      "iDeg": 0.466,
+      "L": [
+        108.47,
+        101.37472
+      ],
+      "peri": [
+        0,
+        0
+      ],
+      "node": [
+        0,
+        0
+      ],
+      "radiusKm": 1560.8,
+      "rotationPeriodHours": 85.228,
+      "tidallyLocked": true,
+      "color": "#c8b9a2",
+      "massKg": 4.8e+22,
+      "surfaceGravityMs2": 1.314,
+      "surfaceTempC": [
+        -223,
+        -171
+      ],
+      "atmosphere_composition": [
+        {
+          "gas": "氧",
+          "percent": 100
+        }
+      ],
+      "atmosphereNote": "辐射分解冰产生的痕量氧",
+      "narrative": "【占位文案，待填写】你正看着木卫二。这里将来会放一段第二人称的介绍。"
+    },
+    {
+      "id": "ganymede",
+      "name": "木卫三",
+      "nameEn": "Ganymede",
+      "parent": "jupiter",
+      "frame": "parentEquator",
+      "aKm": 1070400,
+      "e": 0.0013,
+      "iDeg": 0.177,
+      "L": [
+        190.45,
+        50.31761
+      ],
+      "peri": [
+        0,
+        0
+      ],
+      "node": [
+        0,
+        0
+      ],
+      "radiusKm": 2634.1,
+      "rotationPeriodHours": 171.709,
+      "tidallyLocked": true,
+      "color": "#9b8f80",
+      "massKg": 1.4819e+23,
+      "surfaceGravityMs2": 1.428,
+      "surfaceTempC": [
+        -193,
+        -113
+      ],
+      "atmosphere_composition": [
+        {
+          "gas": "氧",
+          "percent": 100
+        }
+      ],
+      "atmosphereNote": "痕量",
+      "narrative": "【占位文案，待填写】你正看着木卫三。这里将来会放一段第二人称的介绍。"
+    },
+    {
+      "id": "callisto",
+      "name": "木卫四",
+      "nameEn": "Callisto",
+      "parent": "jupiter",
+      "frame": "parentEquator",
+      "aKm": 1882700,
+      "e": 0.0074,
+      "iDeg": 0.192,
+      "L": [
+        322.36,
+        21.57107
+      ],
+      "peri": [
+        0,
+        0
+      ],
+      "node": [
+        0,
+        0
+      ],
+      "radiusKm": 2410.3,
+      "rotationPeriodHours": 400.536,
+      "tidallyLocked": true,
+      "color": "#6e6155",
+      "massKg": 1.0759e+23,
+      "surfaceGravityMs2": 1.235,
+      "surfaceTempC": [
+        -193,
+        -108
+      ],
+      "atmosphere_composition": [
+        {
+          "gas": "二氧化碳",
+          "percent": 80
+        },
+        {
+          "gas": "氧",
+          "percent": 20
+        }
+      ],
+      "atmosphereNote": "痕量",
+      "narrative": "【占位文案，待填写】你正看着木卫四。这里将来会放一段第二人称的介绍。"
+    },
+    {
+      "id": "titan",
+      "name": "土卫六",
+      "nameEn": "Titan",
+      "parent": "saturn",
+      "frame": "parentEquator",
+      "aKm": 1221870,
+      "e": 0.0288,
+      "iDeg": 0.34854,
+      "L": [
+        120.55,
+        22.57697
+      ],
+      "peri": [
+        0,
+        0
+      ],
+      "node": [
+        0,
+        0
+      ],
+      "radiusKm": 2574.7,
+      "rotationPeriodHours": 382.68,
+      "tidallyLocked": true,
+      "color": "#c98f43",
+      "atmosphere": {
+        "color": "#e8b562",
+        "intensity": 1.6,
+        "power": 2.4,
+        "radiusScale": 1.06
+      },
+      "massKg": 1.3452e+23,
+      "surfaceGravityMs2": 1.352,
+      "surfaceTempC": [
+        -179,
+        -179
+      ],
+      "atmosphere_composition": [
+        {
+          "gas": "氮",
+          "percent": 94.2
+        },
+        {
+          "gas": "甲烷",
+          "percent": 5.65
+        },
+        {
+          "gas": "氢",
+          "percent": 0.1
+        }
+      ],
+      "narrative": "【占位文案，待填写】你正看着土卫六。这里将来会放一段第二人称的介绍。"
+    }
+  ]
+}
