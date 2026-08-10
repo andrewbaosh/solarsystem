@@ -5,22 +5,43 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 22;
-  padding: 8px 22px;
+  padding: 7px 20px 8px;
   color: #cfe3ff;
-  background: rgba(6, 10, 20, 0.72);
-  border: 1px solid rgba(120, 160, 220, 0.32);
-  border-radius: 6px;
+  background: rgba(10, 18, 34, 0.78);
+  border: 1px solid rgba(127, 176, 255, 0.42);
+  border-radius: 7px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
-  letter-spacing: 0.22em;
-  text-indent: 0.22em;
+  text-align: center;
   cursor: pointer;
   backdrop-filter: blur(6px);
-  transition: opacity 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.tour-launch b {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: #eaf2ff;
+}
+
+.tour-launch small {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #7f93b5;
 }
 
 .tour-launch:hover {
-  border-color: rgba(120, 160, 220, 0.62);
+  background: rgba(30, 58, 104, 0.85);
+  border-color: rgba(127, 176, 255, 0.8);
+}
+
+.tour-launch:hover b {
   color: #fff;
 }
 

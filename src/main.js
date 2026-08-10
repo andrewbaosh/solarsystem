@@ -8,6 +8,7 @@ import { createCameraRig } from './core/cameraRig.js'
 import * as time from './core/time.js'
 import * as scale from './core/scale.js'
 import { createBodySystem } from './bodies/bodySystem.js'
+import { indexById } from './bodies/orbital.js'
 import { initTextures, loadColorTexture } from './core/textures.js'
 import { createComposer } from './core/postprocessing.js'
 import { createHUD } from './ui/hud.js'
@@ -32,6 +33,9 @@ import tourData from '../data/tour.json'
 // 首屏加载界面要在任何资源开始加载之前挂上，否则进度会从中途开始
 createLoadingScreen({ manager: THREE.DefaultLoadingManager })
 
+// JPL 表按行给出，场景各处按 id 取
+const planetElements = indexById(orbitalElements.planets)
+
 const canvas = document.getElementById('scene')
 const renderer = createRenderer(canvas)
 const camera = createCamera()
@@ -48,7 +52,7 @@ scene.backgroundIntensity = planetsData.background.intensity
 const cameraRig = createCameraRig(camera, renderer.domElement)
 const bodySystem = createBodySystem(scene, {
   planets: planetsData.bodies,
-  elements: orbitalElements.planets,
+  elements: planetElements,
   satellites: satellitesData.satellites,
 })
 
@@ -113,7 +117,12 @@ cameraRig.setFocus(bodySystem.get('sun'), { smooth: false })
 
 const timeControls = createTimeControls()
 const infoPanel = createInfoPanel({
-  elements: orbitalElements.planets,
+  elements: planetElements,
+  // JPL 自己给出的误差表：哪颗星球算得准、哪颗不准，直接摆在资料面板里
+  accuracy: {
+    ...orbitalElements._meta.accuracy_arcsec_longitude,
+    _validRange: orbitalElements._meta.validRange,
+  },
   missions: missionsData,
   edlProfiles: edlData.profiles,
   onClose: () => deselect(),
@@ -130,7 +139,7 @@ const landing = createLanding({
   renderer,
   cameraRig,
   bodySystem,
-  elements: orbitalElements.planets,
+  elements: planetElements,
   missions: missionsData,
   edlProfiles: edlData.profiles,
   surfaceHud,

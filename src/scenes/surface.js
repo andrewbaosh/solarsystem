@@ -30,7 +30,7 @@ function distanceToSunKm(body, elements) {
   const target = body.kind === 'satellite' ? body.parent : body
   const set = elements[target.data.id]
   if (!set) return AU_KM
-  return set.a[0] * AU_KM
+  return set.elements.a * AU_KM
 }
 
 export function createSurfaceScene({

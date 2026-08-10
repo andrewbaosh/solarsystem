@@ -31,14 +31,24 @@ export function normalizeDeg(deg) {
 
 /** 线性外推：element = [历元值, 每世纪变化率] */
 export function elementsAt(set, T) {
+  const v = set.elements
+  const r = set.rates
   return {
-    a: set.a[0] + set.a[1] * T,
-    e: set.e[0] + set.e[1] * T,
-    I: set.I[0] + set.I[1] * T,
-    L: set.L[0] + set.L[1] * T,
-    peri: set.peri[0] + set.peri[1] * T,
-    node: set.node[0] + set.node[1] * T,
+    a: v.a + r.a * T,
+    e: v.e + r.e * T,
+    I: v.I + r.I * T,
+    L: v.L + r.L * T,
+    peri: v.longPeri + r.longPeri * T,
+    node: v.longNode + r.longNode * T,
   }
+}
+
+/**
+ * data/orbital-elements.json 里 planets 是数组（保持 JPL 表的原样，一行一颗），
+ * 而场景各处按 id 取用，这里做一次索引。
+ */
+export function indexById(list) {
+  return Object.fromEntries(list.map((item) => [item.id, item]))
 }
 
 /**

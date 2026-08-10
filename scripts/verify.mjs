@@ -22,8 +22,10 @@ import {
   AU_KM,
   J2000_JD,
   KEPLER_TOLERANCE,
+  indexById,
 } from '../src/bodies/orbital.js'
 import {
+  poleVectorEcliptic,
   obliquityToOrbitDeg,
   obliquityToEclipticDeg,
   spinAngleAt,
@@ -50,7 +52,7 @@ function heading(text) {
   console.log(`\n\x1b[1m${text}\x1b[0m`)
 }
 
-const el = orbitalElements.planets
+const el = indexById(orbitalElements.planets)
 const pos = (id, jd) => heliocentricAU(el[id], jd)
 const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z })
 const len = (v) => Math.hypot(v.x, v.y, v.z)
@@ -248,7 +250,7 @@ heading('6. 卫星系统（跑真实 bodySystem）')
   const scene = new THREE.Scene()
   const system = createBodySystem(scene, {
     planets: planetsData.bodies,
-    elements: orbitalElements.planets,
+    elements: el,
     satellites: satellitesData.satellites,
   })
 
@@ -334,6 +336,101 @@ heading('6. 卫星系统（跑真实 bodySystem）')
     '伽利略卫星轨道面对齐木星赤道面（而非黄道面）',
     jupiterPole.angleTo(new THREE.Vector3(0, 1, 0)) * DEG > 1,
     `轨道面法线偏离黄道法线 ${(jupiterPole.angleTo(new THREE.Vector3(0, 1, 0)) * DEG).toFixed(2)}°（木星转轴倾角 ${jupiter.data.obliquityDeg}°）`,
+  )
+}
+
+// ------------------------------------------------------------------ JPL 对账
+/**
+ * 把 JPL 表里同一批数值再抄一份放在这里当**期望值**，核对运行时数据没有漂移。
+ * 这是测试夹具，不是第二个数据源 —— 场景永远只读 data/*.json。
+ */
+{
+  heading('与 JPL 表对账（自转、卫星、半径口径）')
+
+  // 周期取绝对值比较：本项目用「极点 + 周期符号」表达自转方向，
+  // JPL 那张表用「正周期 + 倾角 > 90°」，两种约定都对，但不能混用
+  const JPL_ROTATION = {
+    sun: [609.12, 7.25], mercury: [1407.6, 0.034], venus: [5832.5, 177.36],
+    earth: [23.9345, 23.44], mars: [24.6229, 25.19], jupiter: [9.925, 3.13],
+    saturn: [10.656, 26.73], uranus: [17.24, 97.77], neptune: [16.11, 28.32],
+  }
+  const rotationBad = []
+  for (const [id, [hours, tilt]] of Object.entries(JPL_ROTATION)) {
+    const b = planetsData.bodies.find((x) => x.id === id)
+    if (!b) { rotationBad.push(`${id} 不存在`); continue }
+    if (Math.abs(Math.abs(b.rotationPeriodHours) - hours) > 0.01) {
+      rotationBad.push(`${id} 周期 ${b.rotationPeriodHours}h ≠ ${hours}h`)
+    }
+    if (Math.abs(b.obliquityDeg - tilt) > 0.01) {
+      rotationBad.push(`${id} 倾角 ${b.obliquityDeg}° ≠ ${tilt}°`)
+    }
+  }
+  check('自转周期与转轴倾角与 JPL 一致', rotationBad.length === 0, rotationBad.join('；') || '9 个天体全部相符')
+
+  // 两种约定禁止重复计数：负周期的天体，其 IAU 极点必须几乎朝上（倾角 < 90°），
+  // 否则「负号」和「倒立的极点」会互相抵消，天体会朝反方向自转
+  const doubleCounted = planetsData.bodies.filter((b) => {
+    if (!(b.rotationPeriodHours < 0)) return false
+    const pole = poleVectorEcliptic(b)
+    return pole.z < 0 // 极点朝下 + 负周期 = 翻了两次
+  })
+  check(
+    '逆行天体没有「负周期 + 倒立极点」重复计数',
+    doubleCounted.length === 0,
+    doubleCounted.map((b) => b.id).join(', ') ||
+      planetsData.bodies
+        .filter((b) => b.rotationPeriodHours < 0)
+        .map((b) => `${b.id} 极点 z=${poleVectorEcliptic(b).z.toFixed(4)}（朝上）`)
+        .join('；'),
+  )
+
+  // 卫星：半长轴 / 离心率 / 倾角 / 恒星周期（周期由 L 的变化率反解）
+  const JPL_SATELLITES = {
+    moon: [384400, 0.0549, 5.145, 27.321661],
+    io: [421800, 0.0041, 0.036, 1.769138],
+    europa: [671100, 0.0094, 0.466, 3.551181],
+    ganymede: [1070400, 0.0013, 0.177, 7.154553],
+    callisto: [1882700, 0.0074, 0.192, 16.689017],
+  }
+  const satBad = []
+  for (const [id, [aKm, e, iDeg, period]] of Object.entries(JPL_SATELLITES)) {
+    const sat = satellitesData.satellites.find((x) => x.id === id)
+    if (!sat) { satBad.push(`${id} 不存在`); continue }
+    if (sat.aKm !== aKm) satBad.push(`${id} a=${sat.aKm} ≠ ${aKm} km`)
+    if (Math.abs(sat.e - e) > 1e-6) satBad.push(`${id} e=${sat.e} ≠ ${e}`)
+    if (Math.abs(sat.iDeg - iDeg) > 1e-4) satBad.push(`${id} i=${sat.iDeg}° ≠ ${iDeg}°`)
+    const derived = 360 / sat.L[1]
+    if (Math.abs(derived - period) > 1e-3) {
+      satBad.push(`${id} 周期 ${derived.toFixed(6)} ≠ ${period} 天`)
+    }
+  }
+  check('卫星要素与 JPL 一致（周期由 L 的变化率反解）', satBad.length === 0, satBad.join('；') || '5 颗卫星全部相符')
+
+  // 半径是两个不同的口径，本来就不该相等 —— 检查差值落在已知范围内，
+  // 免得日后有人拿赤道半径「顺手修正」掉体积平均半径
+  // 近球天体（含太阳）直接比对；扁的那几颗只能比口径差
+  const JPL_SPHERICAL = { sun: 695700, mercury: 2439.7, venus: 6051.8 }
+  const sphericalBad = Object.entries(JPL_SPHERICAL).filter(
+    ([id, r]) => planetsData.bodies.find((x) => x.id === id).radiusKm !== r,
+  )
+  check(
+    '近球天体半径与 JPL 一致（太阳用 IAU 2015 B3 名义半径）',
+    sphericalBad.length === 0,
+    sphericalBad.map(([id, r]) => `${id} ≠ ${r}`).join('；') || '太阳、水星、金星相符',
+  )
+
+  const JPL_EQUATORIAL = { jupiter: 71492, saturn: 60268, earth: 6378.1, mars: 3396.2 }
+  const flattening = Object.entries(JPL_EQUATORIAL).map(([id, eq]) => {
+    const mean = planetsData.bodies.find((x) => x.id === id).radiusKm
+    return `${id} ${((eq / mean - 1) * 100).toFixed(2)}%`
+  })
+  check(
+    '半径用的是体积平均半径，比 JPL 赤道半径小（扁率所致）',
+    Object.entries(JPL_EQUATORIAL).every(([id, eq]) => {
+      const mean = planetsData.bodies.find((x) => x.id === id).radiusKm
+      return mean < eq && eq / mean - 1 < 0.05
+    }),
+    `赤道 / 平均 之差：${flattening.join('，')}`,
   )
 }
 

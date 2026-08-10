@@ -11,11 +11,13 @@ import './tour.css'
 const FADE_MS = 320
 
 export function createTourUI({ chapters, handlers }) {
+  // 入口按钮：顶部居中是全屏唯一没被占用的位置，且不会挡住黄道面上的天体。
+  // 导览只在点这里之后才开始，任何情况下都不会自动播放。
   const launch = document.createElement('button')
   launch.className = 'tour-launch'
   launch.type = 'button'
-  launch.textContent = '导览'
-  launch.title = '自动导览：镜头与解说按脚本走，中途可以随时接管'
+  launch.innerHTML = `<b>▶ 自动导览</b><small>${chapters.length} 章 · 中途可随时接管镜头</small>`
+  launch.title = '镜头与解说按 data/tour.json 的脚本走；播放中拖动即可自己看'
   document.body.appendChild(launch)
 
   const root = document.createElement('div')

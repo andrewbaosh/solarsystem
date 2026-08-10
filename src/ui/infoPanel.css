@@ -283,3 +283,9 @@
   color: #7f93b5;
   line-height: 1.8;
 }
+
+/* 误差、出处这类次要说明 */
+.info-dim {
+  color: #6f809d;
+  font-size: 11px;
+}

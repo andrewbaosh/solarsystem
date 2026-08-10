@@ -75,14 +75,14 @@ function orbitalSummary(body, elements, jd) {
   const el = elementsAt(set, centuriesSinceJ2000(jd))
   return {
     // 平黄经每世纪走 L[1] 度，走满 360° 即一个恒星周期
-    periodDays: (36525 * 360) / set.L[1],
+    periodDays: (36525 * 360) / set.rates.L,
     eccentricity: el.e,
     semiMajorKm: el.a * AU_KM,
     distanceLabel: '到太阳的平均距离',
   }
 }
 
-export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLand }) {
+export function createInfoPanel({ elements, accuracy, missions, edlProfiles, onClose, onLand }) {
   const panel = document.createElement('aside')
   panel.className = 'info-panel'
   panel.innerHTML = `
@@ -228,6 +228,10 @@ export function createInfoPanel({ elements, missions, edlProfiles, onClose, onLa
           row('轨道离心率', orbit.eccentricity.toFixed(4)),
           row(orbit.distanceLabel, `${formatNumber(orbit.semiMajorKm, 3)} km`),
           data.obliquityDeg !== undefined ? row('转轴倾角', `${data.obliquityDeg}°`) : '',
+          // 尺度是显式作弊，位置误差同理：这颗星球现在摆在哪，本来就有误差
+          accuracy?.[data.id] !== undefined
+            ? row('黄经误差', `±${accuracy[data.id]}″　<span class="info-dim">JPL 表 1，${accuracy._validRange ?? ''}</span>`)
+            : '',
         ].join('')
       : `<div class="timeline-empty">该天体位于坐标原点，没有可展示的轨道要素。</div>`
 
