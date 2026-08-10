@@ -17,6 +17,7 @@ import { createInfoPanel } from './ui/infoPanel.js'
 import { createTimeControls } from './ui/timeControls.js'
 import { createSurfaceHud } from './ui/surfaceHud.js'
 import { createLoadingScreen } from './ui/loading.js'
+import { createFilters } from './ui/filters.js'
 import { preloadLanderModel } from './scenes/landers.js'
 import { createLanding } from './scenes/landing.js'
 import missionsData from '../data/missions.json'
@@ -72,6 +73,18 @@ const hud = createHUD({ camera, cameraRig })
 const pickable = [...bodySystem.bodies, ...smallBodies.bodies]
 const labels = createLabels(pickable, camera)
 let labelsOn = true
+
+// 显示筛选器：按类别开关，只改可见性，不影响任何计算
+const filters = createFilters({
+  onChange: (f) => {
+    bodySystem.setVisibility({ planets: f.planets, satellites: f.satellites, orbits: f.orbits })
+    asteroidBelt.setVisible(f.asteroidBelt)
+    smallBodies.setVisible(f.smallBodies, f.orbits)
+    smallBodiesOn = f.asteroidBelt || f.smallBodies
+    labelsOn = f.labels
+    labels.setVisible(labelsOn)
+  },
+})
 
 handleResize(renderer, camera)
 window.addEventListener('resize', () => {
@@ -191,14 +204,23 @@ window.addEventListener('keydown', (e) => {
     case 'KeyM':
       hud.toggleScale() // 走过渡动画，不是瞬切
       return
-    case 'KeyK':
-      smallBodiesOn = !smallBodiesOn
-      asteroidBelt.setVisible(smallBodiesOn)
-      smallBodies.setVisible(smallBodiesOn)
+    case 'KeyK': {
+      const on = !smallBodiesOn
+      filters.set('asteroidBelt', on)
+      filters.set('smallBodies', on)
       return
+    }
     case 'KeyL':
-      labelsOn = !labelsOn
-      labels.setVisible(labelsOn)
+      filters.set('labels', !labelsOn)
+      return
+    // 触摸板没有滚轮时的备用缩放；地表环绕视角下同样有效
+    case 'Equal':
+    case 'NumpadAdd':
+      zoomBy(1 / 1.18)
+      return
+    case 'Minus':
+    case 'NumpadSubtract':
+      zoomBy(1.18)
       return
   }
 

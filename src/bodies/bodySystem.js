@@ -282,5 +282,14 @@ export function createBodySystem(scene, { planets, elements, satellites }) {
     return byId.get(id) ?? null
   }
 
-  return { bodies, update, get, rebuildOrbitLines, star }
+  /** 按类别控制可见性；只改显示，不影响任何计算 */
+  function setVisibility({ planets = true, satellites = true, orbits = true } = {}) {
+    for (const body of bodies) {
+      const on = body.kind === 'satellite' ? satellites : planets
+      body.group.visible = on
+      if (body.orbitLine) body.orbitLine.visible = on && orbits
+    }
+  }
+
+  return { bodies, update, get, rebuildOrbitLines, star, setVisibility }
 }

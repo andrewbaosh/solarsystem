@@ -22,6 +22,7 @@ export function createSurfaceHud({ onExit }) {
   root.innerHTML = `
     <div class="surface-panel"></div>
     <button class="surface-exit" type="button">← 返回轨道</button>
+    <button class="surface-view" type="button" title="在「站在地面走动」与「绕着着陆器看」之间切换">环绕观察</button>
     <div class="surface-reticle"></div>
     <div class="surface-lock-prompt">点击进入第一人称　·　WASD 移动　空格 跳跃　Shift 加速</div>
     <div class="marker-card is-hidden">
@@ -39,13 +40,24 @@ export function createSurfaceHud({ onExit }) {
   const reticle = root.querySelector('.surface-reticle')
 
   root.querySelector('.surface-exit').addEventListener('click', () => onExit())
+  const viewBtn = root.querySelector('.surface-view')
+  viewBtn.addEventListener('click', () => {
+    scene?.toggleViewMode()
+  })
   card.querySelector('button').addEventListener('click', () => card.classList.add('is-hidden'))
   // 指针锁必须由用户手势触发，转场结束时那次点击早已过期，所以给一个提示按钮
-  prompt.addEventListener('click', () => scene?.firstPerson.lock())
+  prompt.addEventListener('click', () => {
+    if (scene?.getMode() === 'orbit') return // 环绕观察下这行只是操作说明
+    scene?.firstPerson.lock()
+  })
 
   /** 提示语随指针锁是否可用而变 —— 锁不上时告诉用户可以拖动 */
   function promptText() {
     if (!scene) return ''
+    // 环绕观察下没有走动一说，提示改成这个模式真正能做的操作
+    if (scene.getMode() === 'orbit') {
+      return '拖动旋转　·　双指滚动 / 滚轮缩放　·　右键拖动平移'
+    }
     return scene.firstPerson.lockUnavailable()
       ? '按住左键拖动转视角　·　WASD 移动　空格 跳跃　Shift 加速'
       : '点击锁定鼠标转视角　·　WASD 移动　空格 跳跃　Shift 加速　ESC 交还鼠标'
@@ -109,13 +121,18 @@ export function createSurfaceHud({ onExit }) {
     const camera = scene.camera
 
     // 下降阶段是第三人称观看，不该出现准星、行走提示、着陆点标签和地表数据面板
+    const landed = scene.isWalkable() // 已触地：第一人称或环绕观察
     const walking = scene.isFirstPerson()
     const locked = walking && scene.firstPerson.isLocked()
-    root.classList.toggle('is-descending', !walking)
-    prompt.classList.toggle('is-hidden', !walking || locked)
-    if (walking && !locked) prompt.textContent = promptText()
+    root.classList.toggle('is-descending', !landed)
+    viewBtn.style.display = landed ? '' : 'none'
+    if (landed) viewBtn.textContent = scene.getMode() === 'orbit' ? '第一人称' : '环绕观察'
+    const showPrompt = landed && !locked
+    prompt.classList.toggle('is-hidden', !showPrompt)
+    prompt.classList.toggle('is-static', scene.getMode() === 'orbit')
+    if (showPrompt) prompt.textContent = promptText()
     reticle.style.opacity = locked ? '0.55' : '0'
-    if (!walking) {
+    if (!landed) {
       for (const el of labels.values()) el.style.display = 'none'
       return
     }

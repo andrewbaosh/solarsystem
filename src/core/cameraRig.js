@@ -104,5 +104,21 @@ export function createCameraRig(camera, domElement) {
     distanceAnimation = null
   }
 
-  return { controls, update, setFocus, getFocus, flyTo, cancelFlight }
+  /**
+   * 键盘缩放：按比例 dolly，和滚轮走同一套对数手感。
+   * 触摸板用户（只有双指滚动、没有滚轮）多一条确定性的入口。
+   */
+  function zoomBy(factor) {
+    const target = controls.target
+    offset.copy(camera.position).sub(target)
+    const distance = THREE.MathUtils.clamp(
+      offset.length() * factor,
+      controls.minDistance,
+      controls.maxDistance,
+    )
+    camera.position.copy(target).addScaledVector(offset.normalize(), distance)
+    controls.update()
+  }
+
+  return { controls, update, setFocus, getFocus, flyTo, cancelFlight, zoomBy }
 }

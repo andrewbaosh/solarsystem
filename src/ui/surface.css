@@ -136,6 +136,13 @@
   display: none;
 }
 
+/* 环绕观察下这行只是说明，不可点 */
+.surface-lock-prompt.is-static {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.8;
+}
+
 /* 着陆点标记标签 */
 .marker-label {
   position: absolute;
@@ -219,4 +226,25 @@
   border: 1px solid rgba(255, 220, 190, 0.3);
   border-radius: 4px;
   cursor: pointer;
+}
+
+/* 视角切换按钮：落地后才出现，位于「返回轨道」下方 */
+.surface-view {
+  position: absolute;
+  top: 52px;
+  right: 14px;
+  padding: 7px 14px;
+  pointer-events: auto;
+  color: #f2e8dc;
+  background: rgba(10, 8, 6, 0.68);
+  border: 1px solid rgba(255, 220, 190, 0.35);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.surface-view:hover {
+  background: rgba(255, 220, 190, 0.2);
+  color: #fff;
 }

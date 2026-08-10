@@ -152,10 +152,10 @@ export function createSmallBodies(scene, data) {
     return bodies.find((b) => b.data.id === id) ?? null
   }
 
-  function setVisible(visible) {
+  function setVisible(visible, showOrbits = true) {
     for (const b of bodies) {
       b.group.visible = visible
-      b.orbitLine.visible = visible
+      b.orbitLine.visible = visible && showOrbits
     }
   }
 

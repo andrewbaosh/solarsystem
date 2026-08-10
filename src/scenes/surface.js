@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createTerrain } from './terrain.js'
 import { createSky } from './sky.js'
 import { createLander } from './landers.js'
@@ -242,8 +243,25 @@ export function createSurfaceScene({
   const desiredQuat = new THREE.Quaternion()
   const focusPoint = new THREE.Vector3()
 
+  /**
+   * 三种镜头：
+   *   descent      下降跟拍
+   *   firstPerson  站在地面上走动
+   *   orbit        绕着着陆器看 —— 和看太阳系时一样可以拖动旋转、滚轮缩放
+   */
   let mode = 'descent'
   let handoff = null
+
+  const orbitControls = new OrbitControls(camera, renderer.domElement)
+  orbitControls.enableDamping = true
+  orbitControls.dampingFactor = 0.08
+  orbitControls.rotateSpeed = 0.5
+  orbitControls.zoomSpeed = 0.9
+  orbitControls.minDistance = 2
+  orbitControls.maxDistance = 400
+  // 不让镜头钻到地面以下
+  orbitControls.maxPolarAngle = Math.PI * 0.495
+  orbitControls.enabled = false
   const handoffFrom = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }
   const handoffTo = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }
 
@@ -325,6 +343,46 @@ export function createSurfaceScene({
   }
 
   const dirToLander = new THREE.Vector3()
+  const landerFocus = new THREE.Vector3()
+
+  /** 在「站在地面走动」与「绕着着陆器看」之间切换 */
+  function setViewMode(next) {
+    if (mode === 'descent' || handoff) return mode
+    if (next === mode) return mode
+    if (next === 'orbit') {
+      landerFocus.set(landingX, groundY + lander.height * 0.5, landingZ)
+      orbitControls.target.copy(landerFocus)
+      // 从当前站位起步，不要瞬移
+      const offset = camera.position.clone().sub(landerFocus)
+      if (offset.lengthSq() < 4) offset.set(9, 5, 7)
+      camera.position.copy(landerFocus).add(offset)
+      orbitControls.enabled = true
+      firstPerson.unlock()
+      mode = 'orbit'
+    } else {
+      orbitControls.enabled = false
+      firstPerson.spawn(camera.position.x, camera.position.z)
+      mode = 'firstPerson'
+    }
+    return mode
+  }
+
+  /** 键盘缩放，只在环绕观察下有意义 */
+  function zoomBy(factor) {
+    if (mode !== 'orbit') return
+    const offset = camera.position.clone().sub(orbitControls.target)
+    const distance = THREE.MathUtils.clamp(
+      offset.length() * factor,
+      orbitControls.minDistance,
+      orbitControls.maxDistance,
+    )
+    camera.position.copy(orbitControls.target).addScaledVector(offset.normalize(), distance)
+    orbitControls.update()
+  }
+
+  function toggleViewMode() {
+    return setViewMode(mode === 'orbit' ? 'firstPerson' : 'orbit')
+  }
 
   function update(dt) {
     if (craneReleasing && craneFlyaway < 1) {
@@ -351,6 +409,9 @@ export function createSurfaceScene({
         aimAt(focusPoint, dt)
       }
       focusPoint.set(landingX, groundY, landingZ)
+    } else if (mode === 'orbit') {
+      orbitControls.update()
+      focusPoint.copy(orbitControls.target)
     } else {
       firstPerson.update(dt)
       focusPoint.copy(firstPerson.player.position)
@@ -369,6 +430,7 @@ export function createSurfaceScene({
   }
 
   function dispose() {
+    orbitControls.dispose()
     firstPerson.dispose()
     scene.traverse((obj) => {
       // 缓存模型的 geometry / material 是跨场景共享的，释放了下次登陆就没东西可用
@@ -414,8 +476,12 @@ export function createSurfaceScene({
     dispose,
     setDescentState,
     beginFirstPerson,
+    setViewMode,
+    toggleViewMode,
+    zoomBy,
     getMode: () => mode,
     isFirstPerson: () => mode === 'firstPerson',
+    isWalkable: () => mode === 'firstPerson' || mode === 'orbit',
     sunDirection,
   }
 }
