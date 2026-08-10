@@ -117,7 +117,8 @@ function select(body) {
   cameraRig.flyTo(body)
   infoPanel.show(body, time.getJD())
   // 面板一打开就把该天体的着陆器模型预热到缓存，用户真点「登陆」时就不用等网络了
-  preloadLanderModel(edlData.profiles[body.data.id]?.model)
+  const profile = edlData.profiles[body.data.id]
+  preloadLanderModel(profile?.model, profile?.modelHeight)
 }
 
 /** 解除跟随，回到自由视角 */

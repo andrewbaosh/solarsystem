@@ -26,15 +26,46 @@ const gltfLoader = (() => {
 })()
 
 /**
- * 预热浏览器缓存。在资料面板打开时就悄悄把模型拉下来，
- * 等用户真的点「登陆」时只剩解析开销，不必再等网络。
- * 只做 fetch 不做解析，避免跨场景共享 geometry 带来的释放问题。
+ * 已解析模型的缓存。
+ *
+ * 缓存的是解析结果，每次取用返回 clone —— clone 共享 geometry 与 material，
+ * 所以给它们打上 shared 标记，地表场景 dispose 时会跳过，否则第二次登陆
+ * 拿到的就是一堆已经被释放的资源。
  */
-const warmed = new Set()
-export function preloadLanderModel(file) {
-  if (!file || warmed.has(file) || typeof fetch === 'undefined') return
-  warmed.add(file)
-  fetch(MODEL_BASE + file, { cache: 'force-cache' }).catch(() => warmed.delete(file))
+const modelCache = new Map()
+
+function markShared(object) {
+  object.traverse((child) => {
+    if (!child.isMesh) return
+    child.userData.shared = true
+    if (child.geometry) child.geometry.userData.shared = true
+    const mats = Array.isArray(child.material) ? child.material : [child.material]
+    for (const m of mats) if (m) m.userData.shared = true
+  })
+}
+
+/**
+ * 确保模型已下载并解析完成。返回可直接使用的副本；无模型或加载失败返回 null。
+ * 调用方（landing）会等它就绪再开始时序 —— 否则整个下降过程看到的都是
+ * 程序化占位模型，等于白做。
+ */
+export function ensureLanderModel(file, targetHeight) {
+  if (!file || !gltfLoader) return Promise.resolve(null)
+  if (!modelCache.has(file)) {
+    modelCache.set(
+      file,
+      loadModel(file, targetHeight).then((root) => {
+        if (root) markShared(root)
+        return root
+      }),
+    )
+  }
+  return modelCache.get(file).then((root) => (root ? root.clone(true) : null))
+}
+
+/** 资料面板打开时提前触发下载与解析，用户真点「登陆」时就无需等待 */
+export function preloadLanderModel(file, targetHeight) {
+  ensureLanderModel(file, targetHeight).catch(() => {})
 }
 
 /**
@@ -339,22 +370,108 @@ function genericLander() {
 
 // ---- 降落伞 ---------------------------------------------------------------
 
-function createParachute(color = 0xe8e4dc) {
+/**
+ * 伞衣贴图：按真实的伞幅（gore）分块生成。
+ *
+ * MSL / 火星 2020 的伞是「盘-缝-带」（disk-gap-band）构型，伞衣由 80 个伞幅拼成，
+ * 染成橙白相间的图案 —— 这个图案不是装饰，是为了从下降影像里判读伞的旋转与摆动。
+ * 这里用 Canvas 直接画出径向分块，比贴一张纯色省事也更准。
+ */
+function createParachuteTexture(gores = 32) {
+  if (typeof document === 'undefined') return null
+  const size = 512
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')
+
+  ctx.fillStyle = '#efe9dd'
+  ctx.fillRect(0, 0, size, size)
+
+  // 径向伞幅：橙白相间
+  const cx = size / 2
+  for (let i = 0; i < gores; i++) {
+    if (i % 2 === 0) continue
+    const a0 = (i / gores) * Math.PI * 2
+    const a1 = ((i + 1) / gores) * Math.PI * 2
+    ctx.fillStyle = '#d4552a'
+    ctx.beginPath()
+    ctx.moveTo(cx, cx)
+    ctx.arc(cx, cx, size, a0, a1)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  // 同心带：伞衣的加强带，同时打断纯径向的单调感
+  ctx.strokeStyle = 'rgba(120, 90, 70, 0.5)'
+  for (const r of [0.34, 0.62, 0.86]) {
+    ctx.lineWidth = size * 0.012
+    ctx.beginPath()
+    ctx.arc(cx, cx, size * r * 0.5, 0, Math.PI * 2)
+    ctx.stroke()
+  }
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+  return texture
+}
+
+let parachuteTexture = null
+
+/**
+ * 盘-缝-带伞：上方是主伞盘，下面隔一道通气缝，再接一圈伞带。
+ * 这个构型是超音速开伞稳定性的关键，也是火星伞最好认的外形。
+ */
+function createParachute() {
   const g = new THREE.Group()
-  const canopy = mesh(
-    new THREE.SphereGeometry(6, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2),
-    new THREE.MeshStandardMaterial({ color, roughness: 0.9, side: THREE.DoubleSide }),
+  if (!parachuteTexture) parachuteTexture = createParachuteTexture()
+
+  const fabric = new THREE.MeshStandardMaterial({
+    map: parachuteTexture,
+    color: parachuteTexture ? 0xffffff : 0xe8e4dc,
+    roughness: 0.92,
+    metalness: 0,
+    side: THREE.DoubleSide,
+  })
+
+  const RADIUS = 6.4
+  const TOP = 18
+
+  // 伞盘：半球顶稍稍压扁，更接近充气后的形状
+  const disk = mesh(
+    new THREE.SphereGeometry(RADIUS, 48, 20, 0, Math.PI * 2, 0, Math.PI * 0.46),
+    fabric,
     0,
-    18,
+    TOP,
     0,
   )
-  g.add(canopy)
-  const lineMat = new THREE.MeshBasicMaterial({ color: 0xcfc9bd })
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2
-    const line = mesh(new THREE.CylinderGeometry(0.03, 0.03, 13, 4), lineMat, Math.cos(a) * 3, 11.5, Math.sin(a) * 3)
-    line.lookAt(new THREE.Vector3(0, 4, 0))
+  disk.scale.y = 0.82
+  g.add(disk)
+
+  // 通气缝下方的伞带
+  const band = mesh(
+    new THREE.CylinderGeometry(RADIUS * 0.93, RADIUS * 0.82, RADIUS * 0.34, 48, 1, true),
+    fabric,
+    0,
+    TOP - RADIUS * 0.62,
+    0,
+  )
+  g.add(band)
+
+  // 伞绳：从伞带下缘收拢到探测器
+  const lineMat = new THREE.MeshBasicMaterial({ color: 0xd8d2c6 })
+  const LINE_COUNT = 16
+  const attachY = TOP - RADIUS * 0.8
+  for (let i = 0; i < LINE_COUNT; i++) {
+    const a = (i / LINE_COUNT) * Math.PI * 2
+    const from = new THREE.Vector3(Math.cos(a) * RADIUS * 0.85, attachY, Math.sin(a) * RADIUS * 0.85)
+    const to = new THREE.Vector3(0, 2.2, 0)
+    const length = from.distanceTo(to)
+    const line = mesh(new THREE.CylinderGeometry(0.035, 0.035, length, 4), lineMat)
+    line.position.copy(from).add(to).multiplyScalar(0.5)
+    line.lookAt(to)
     line.rotateX(Math.PI / 2)
+    line.castShadow = false
     g.add(line)
   }
   return g
@@ -445,32 +562,24 @@ export function createLander(type = 'generic', options = {}) {
    * 有官方模型时用官方模型替换程序化外形。
    * 先把程序化版本挂上去、再异步替换：网络慢也不会出现空场景。
    */
-  // 官方模型是异步替换进来的，setShell 需要知道当前到底是谁在显示
+  // 官方模型由调用方预先加载好后同步传入，setShell 需要知道当前是谁在显示
   let loadedModel = null
   let modelReplaced = false
 
-  if (options.model && gltfLoader) {
-    options.onModelLoadStart?.()
-    loadModel(options.model, options.modelHeight).then((model) => {
-      options.onModelSettled?.()
-      if (!model) return
-      loadedModel = model
-      if (built.parts?.rover) {
-        // 空中吊车：只换车，下降级与缆绳仍是程序化的
-        built.parts.rover.clear()
-        built.parts.rover.add(model)
-      } else {
-        built.group.visible = false
-        modelReplaced = true
-        root.add(model)
-      }
-      // 模型可能在外壳仍然罩着时才加载完，这里跟随当前外壳状态
-      if (aeroshell.group.visible) model.visible = false
-      options.onModelLoaded?.(model)
-    })
+  if (options.preloadedModel) {
+    loadedModel = options.preloadedModel
+    if (built.parts?.rover) {
+      // 空中吊车：只换车，下降级与缆绳仍是程序化的
+      built.parts.rover.clear()
+      built.parts.rover.add(loadedModel)
+    } else {
+      built.group.visible = false
+      modelReplaced = true
+      root.add(loadedModel)
+    }
   }
 
-  const parachute = createParachute(options.parachuteColor)
+  const parachute = createParachute()
   parachute.visible = false
   root.add(parachute)
 

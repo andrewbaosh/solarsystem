@@ -38,8 +38,7 @@ export function createSurfaceScene({
   missions,
   renderer,
   edlProfile,
-  onModelLoadStart,
-  onModelSettled,
+  preloadedModel,
 }) {
   const config = body.data.surface
   const scene = new THREE.Scene()
@@ -130,12 +129,7 @@ export function createSurfaceScene({
   const landingZ = 0
   const groundY = terrain.heightAt(landingX, landingZ)
 
-  const lander = createLander(edlProfile?.lander ?? 'generic', {
-    model: edlProfile?.model,
-    modelHeight: edlProfile?.modelHeight,
-    onModelLoadStart: onModelLoadStart,
-    onModelSettled: onModelSettled,
-  })
+  const lander = createLander(edlProfile?.lander ?? 'generic', { preloadedModel })
   lander.root.position.set(landingX, groundY, landingZ)
   scene.add(lander.root)
 
@@ -349,6 +343,7 @@ export function createSurfaceScene({
           handoff = null
           mode = 'firstPerson'
           markerGroup.visible = true
+          firstPerson.activate() // 交接完成才允许走动，避免下降途中误触
         }
       } else {
         placeChaseCamera(lander.root.position.y)
@@ -376,10 +371,11 @@ export function createSurfaceScene({
   function dispose() {
     firstPerson.dispose()
     scene.traverse((obj) => {
-      if (obj.geometry) obj.geometry.dispose()
+      // 缓存模型的 geometry / material 是跨场景共享的，释放了下次登陆就没东西可用
+      if (obj.geometry && !obj.geometry.userData?.shared) obj.geometry.dispose()
       if (obj.material) {
         const list = Array.isArray(obj.material) ? obj.material : [obj.material]
-        for (const m of list) m.dispose()
+        for (const m of list) if (m && !m.userData?.shared) m.dispose()
       }
     })
   }

@@ -1,6 +1,7 @@
 import { createSurfaceScene } from './surface.js'
 import { createEdlSequence } from '../ui/edlSequence.js'
 import { createAssetToast } from '../ui/loading.js'
+import { ensureLanderModel } from './landers.js'
 
 /**
  * 登陆流程的调度器。
@@ -39,21 +40,21 @@ export function createLanding({
   let surface = null
   let exitPhase = null // 返回轨道用的简单遮罩时序
   let warp = null // 换景遮罩，时序开始前的那一小段
+  let pendingModel = false // 正在等官方模型就位
   let touchdownHold = 0
 
   function isLandable(body) {
     return Boolean(body?.data?.surface?.landable) && Boolean(edlProfiles[body.data.id])
   }
 
-  function buildSurface(body) {
+  function buildSurface(body, preloadedModel) {
     surface = createSurfaceScene({
       body,
       elements,
       missions,
       renderer,
       edlProfile: edlProfiles[body.data.id],
-      onModelLoadStart: () => assetToast.show('正在加载着陆器模型…'),
-      onModelSettled: () => assetToast.hide(),
+      preloadedModel,
     })
     surface.body = body
     surfaceHud.attach(surface)
@@ -103,13 +104,30 @@ export function createLanding({
    * 整个下降过程都看得见机器，而不是前半段还在轨道上看行星。
    */
   function enter(body) {
-    if (exitPhase || warp || sequence.isRunning() || mode === 'surface' || !isLandable(body)) return
+    if (exitPhase || warp || pendingModel || sequence.isRunning() || mode === 'surface') return
+    if (!isLandable(body)) return
 
+    const profile = edlProfiles[body.data.id]
     touchdownHold = 0
     sequence.setTint(body.data.surface.sky?.horizon ?? '#ffffff')
     sequence.prepare(body.data.id, edlProfiles)
-    warp = { t: 0, body }
-    cameraRig.flyTo(body, { distanceFactor: 1.12, duration: WARP_IN })
+
+    /**
+     * 官方模型必须在时序开始前就位。
+     * 否则 5 MB 的模型很可能等到落地之后才到，整个下降过程看到的都是
+     * 程序化占位模型 —— 那等于白做。资料面板打开时已经预热过，
+     * 通常这里是立即返回的。
+     */
+    if (profile.model) assetToast.show('正在加载着陆器模型…')
+    pendingModel = true
+    ensureLanderModel(profile.model, profile.modelHeight)
+      .catch(() => null)
+      .then((model) => {
+        pendingModel = false
+        assetToast.hide()
+        warp = { t: 0, body, model }
+        cameraRig.flyTo(body, { distanceFactor: 1.12, duration: WARP_IN })
+      })
   }
 
   function exit() {
@@ -130,7 +148,7 @@ export function createLanding({
       warp.t += dt
       sequence.setVeilOpacity(Math.min(1, warp.t / WARP_IN))
       if (warp.t >= WARP_IN) {
-        buildSurface(warp.body)
+        buildSurface(warp.body, warp.model)
         sequence.begin()
         syncDescent() // 立刻摆好第一帧的着陆器姿态，避免闪一下默认状态
         warp = null
@@ -180,7 +198,7 @@ export function createLanding({
     isLandable,
     getMode: () => mode,
     getSurface: () => surface,
-    isTransitioning: () => sequence.isRunning() || Boolean(exitPhase),
+    isTransitioning: () => sequence.isRunning() || Boolean(exitPhase) || Boolean(warp) || pendingModel,
     skipSequence: () => sequence.skip(),
   }
 }

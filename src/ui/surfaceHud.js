@@ -43,6 +43,14 @@ export function createSurfaceHud({ onExit }) {
   // 指针锁必须由用户手势触发，转场结束时那次点击早已过期，所以给一个提示按钮
   prompt.addEventListener('click', () => scene?.firstPerson.lock())
 
+  /** 提示语随指针锁是否可用而变 —— 锁不上时告诉用户可以拖动 */
+  function promptText() {
+    if (!scene) return ''
+    return scene.firstPerson.lockUnavailable()
+      ? '按住左键拖动转视角　·　WASD 移动　空格 跳跃　Shift 加速'
+      : '点击锁定鼠标转视角　·　WASD 移动　空格 跳跃　Shift 加速　ESC 交还鼠标'
+  }
+
   const labels = new Map() // marker → element
   const worldPosition = new THREE.Vector3()
   const projected = new THREE.Vector3()
@@ -105,6 +113,7 @@ export function createSurfaceHud({ onExit }) {
     const locked = walking && scene.firstPerson.isLocked()
     root.classList.toggle('is-descending', !walking)
     prompt.classList.toggle('is-hidden', !walking || locked)
+    if (walking && !locked) prompt.textContent = promptText()
     reticle.style.opacity = locked ? '0.55' : '0'
     if (!walking) {
       for (const el of labels.values()) el.style.display = 'none'
