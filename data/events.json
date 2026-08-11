@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "purpose": "天象搜索器的事件定义。引擎只认 measure/extremum 这几个字段，具体找什么全在这里。",
+    "measures": {
+      "elongation": "地心视角下天体与太阳的角距（距角），度",
+      "oppositionGap": "离「冲」还差多少度，0 为正冲",
+      "separation": "两个天体的地心角距，度（需要 other 字段）",
+      "distance": "地心距离，km",
+      "heliocentric": "日心距离，km",
+      "umbraGap": "月心到地影轴的距离，以本影半径为单位；< 1 即进入本影"
+    },
+    "fields": {
+      "extremum": "min 或 max —— 找目标量的极小还是极大",
+      "maxValue": "可选。极小值必须 ≤ 它、或极大值必须 ≥ 它，才算一次事件",
+      "scanStepDays": "粗扫步长。太大会漏掉窄事件，太小则慢。食相类要 ≤ 0.25 天",
+      "accuracy": "该事件的时刻精度说明，会显示在结果里"
+    },
+    "caveat": "日食的全/环判定是**地心**判据：类型是对的，但本项目不计算食带，不要声称某地能看到。"
+  },
+  "events": [
+    { "id": "solar-eclipse", "name": "日食", "measure": "elongation", "target": "moon",
+      "extremum": "min", "maxValue": 1.6, "scanStepDays": 0.2, "classify": "solar",
+      "needsPreciseMoon": true, "accuracy": "地心最小角距时刻，与「最大食」差约 1–2 分钟" },
+    { "id": "lunar-eclipse", "name": "月食", "measure": "umbraGap",
+      "extremum": "min", "maxValue": 1.0, "scanStepDays": 0.2, "classify": "lunar",
+      "needsPreciseMoon": true, "accuracy": "食甚时刻，约 1 分钟" },
+    { "id": "mars-opposition", "name": "火星冲", "measure": "oppositionGap", "target": "mars",
+      "extremum": "min", "scanStepDays": 2, "accuracy": "地心黄经差 180° 的时刻" },
+    { "id": "jupiter-opposition", "name": "木星冲", "measure": "oppositionGap", "target": "jupiter",
+      "extremum": "min", "scanStepDays": 2 },
+    { "id": "saturn-opposition", "name": "土星冲", "measure": "oppositionGap", "target": "saturn",
+      "extremum": "min", "scanStepDays": 2 },
+    { "id": "mercury-elongation", "name": "水星大距", "measure": "elongation", "target": "mercury",
+      "extremum": "max", "maxValue": 17, "scanStepDays": 1, "accuracy": "距角极大的时刻" },
+    { "id": "venus-elongation", "name": "金星大距", "measure": "elongation", "target": "venus",
+      "extremum": "max", "maxValue": 44, "scanStepDays": 1 },
+    { "id": "jupiter-saturn", "name": "木土相合", "measure": "separation", "target": "jupiter",
+      "other": "saturn", "extremum": "min", "maxValue": 2, "scanStepDays": 2,
+      "accuracy": "地心角距极小的时刻" },
+    { "id": "venus-jupiter", "name": "金木相合", "measure": "separation", "target": "venus",
+      "other": "jupiter", "extremum": "min", "maxValue": 1.5, "scanStepDays": 1 },
+    { "id": "mars-closest", "name": "火星最近", "measure": "distance", "target": "mars",
+      "extremum": "min", "scanStepDays": 2, "accuracy": "地火距离极小的时刻" }
+  ]
+}

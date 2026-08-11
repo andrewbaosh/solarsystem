@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "verify": "node scripts/verify.mjs",
-    "music": "node scripts/fetch-music.js"
+    "music": "node scripts/fetch-music.js",
+    "ephemeris": "node scripts/build-ephemeris.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"

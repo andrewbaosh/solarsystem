@@ -8,7 +8,7 @@ import { createCameraRig } from './core/cameraRig.js'
 import * as time from './core/time.js'
 import * as scale from './core/scale.js'
 import { createBodySystem } from './bodies/bodySystem.js'
-import { indexById } from './bodies/orbital.js'
+import { indexById, heliocentricKm, satellitePositionKm } from './bodies/orbital.js'
 import { initTextures, loadColorTexture } from './core/textures.js'
 import { createComposer } from './core/postprocessing.js'
 import { createHUD } from './ui/hud.js'
@@ -29,6 +29,10 @@ import { createAsteroidBelt } from './bodies/asteroidBelt.js'
 import { createSmallBodies } from './bodies/smallBodies.js'
 import { createAmbientMusic, VIEW } from './audio/ambientMusic.js'
 import { createAudioToggle } from './ui/audioToggle.js'
+import { createEphemerisLoader } from './bodies/ephemeris.js'
+import { createMeasures, findEvents, classifySolarEclipse, classifyLunarEclipse } from './events/finder.js'
+import { createEventsPanel } from './ui/eventsPanel.js'
+import eventsData from '../data/events.json'
 import { createTour } from './tour/tourPlayer.js'
 import { createTourUI } from './ui/tourUI.js'
 import tourData from '../data/tour.json'
@@ -41,6 +45,8 @@ const loadingScreen = createLoadingScreen({
     // 而且这次点击同时也是 AudioContext 需要的那个用户手势
     music.unlock()
     music.load()
+    // 星历表 500 KB 上下，同样放在这次点击之后取，不跟贴图抢首屏
+    ephemeris.load(planetsData.bodies.filter((b) => b.type !== 'star').map((b) => b.id))
   },
 })
 
@@ -61,10 +67,19 @@ scene.background = starfield
 scene.backgroundIntensity = planetsData.background.intensity
 
 const cameraRig = createCameraRig(camera, renderer.domElement)
+
+/**
+ * 高精度星历（VSOP87 + ELP2000）。首屏不取，点「开始探索」后台加载；
+ * 表到位前场景用 Standish 表跑，到位后自动切换 —— 两者差角分级，看不出跳变。
+ * 取不到就一直用 Standish，只是天象里的日月食会被禁掉。
+ */
+const ephemeris = createEphemerisLoader({ baseUrl: import.meta.env.BASE_URL ?? '/' })
+
 const bodySystem = createBodySystem(scene, {
   planets: planetsData.bodies,
   elements: planetElements,
   satellites: satellitesData.satellites,
+  ephemeris,
 })
 
 /**
@@ -186,6 +201,106 @@ const landing = createLanding({
     if (mode === 'surface') infoPanel.hide()
   },
 })
+
+// ---- 天象 ------------------------------------------------------------------
+
+/**
+ * 天象搜索器要的是**地心向量**，而场景里存的是日心/母星相对坐标，
+ * 所以这里做一层换算。位置源优先高精度表，退化时仍能算冲与相合，
+ * 只是日月食会被挡掉（月球误差超过 1°，算出来的食是假的）。
+ */
+const AU_KM = 149597870.7
+const eventProvider = {
+  get precise() {
+    return ephemeris.hasMoon() && ephemeris.hasPlanet('earth')
+  },
+  sun(jd) {
+    const e = this.helio('earth', jd)
+    return { x: -e.x, y: -e.y, z: -e.z }
+  },
+  helio(id, jd) {
+    if (ephemeris.hasPlanet(id)) {
+      const au = ephemeris.planet(id, jd, {})
+      return { x: au.x * AU_KM, y: au.y * AU_KM, z: au.z * AU_KM }
+    }
+    const set = planetElements[id]
+    if (!set) return { x: 0, y: 0, z: 0 }
+    const v = new THREE.Vector3()
+    heliocentricKm(set, jd, v)
+    return { x: v.x, y: v.y, z: v.z }
+  },
+  geocentric(id, jd) {
+    if (id === 'moon') {
+      if (ephemeris.hasMoon()) return ephemeris.moon(jd, {})
+      const v = new THREE.Vector3()
+      satellitePositionKm(satellitesData.satellites.find((s) => s.id === 'moon'), jd, v)
+      return { x: v.x, y: v.y, z: v.z }
+    }
+    const e = this.helio('earth', jd)
+    const b = this.helio(id, jd)
+    return { x: b.x - e.x, y: b.y - e.y, z: b.z - e.z }
+  },
+}
+const eventMeasures = createMeasures(eventProvider)
+
+const CLASSIFY = { solar: classifySolarEclipse, lunar: classifyLunarEclipse }
+const KIND_CN = { total: '全食', annular: '环食', partial: '偏食', penumbral: '半影食' }
+
+const eventsPanel = createEventsPanel({
+  groups: eventsData.events.map((e) => ({ id: e.id, name: e.name })),
+  onSearch: ({ years, ids }) => {
+    const t0 = performance.now()
+    const from = time.getJD()
+    const to = from + years * 365.25
+    const out = []
+    let blocked = false
+    for (const spec of eventsData.events) {
+      if (!ids.includes(spec.id)) continue
+      if (spec.needsPreciseMoon && !eventProvider.precise) {
+        blocked = true
+        continue
+      }
+      for (const hit of findEvents({ provider: eventProvider, measures: eventMeasures, spec, from, to, limit: 60 })) {
+        const kind = spec.classify ? CLASSIFY[spec.classify](eventProvider, hit.jd) : null
+        if (spec.classify && !kind) continue // 扫到了极小但够不上食
+        out.push({
+          jd: hit.jd,
+          date: time.formatDate(new Date((hit.jd - 2440587.5) * 86400000)),
+          name: spec.name,
+          kind,
+          target: spec.target,
+          detail: describeEvent(spec, hit, kind),
+        })
+      }
+    }
+    out.sort((a, b) => a.jd - b.jd)
+    return {
+      events: out,
+      ms: performance.now() - t0,
+      warning: blocked
+        ? '高精度星历还没就位，日月食暂不可算 —— 平均要素模型的月球误差超过 1°，算出来的食是假的。'
+        : eventsData._meta.caveat,
+    }
+  },
+  onJump: (e) => {
+    time.setJD(e.jd)
+    time.setPaused(true)
+    bodySystem.update(time.getJD())
+    smallBodies.update(time.getJD())
+    const body = bodySystem.get(e.kind ? 'earth' : (e.target ?? 'earth'))
+    if (body) select(body)
+  },
+})
+
+function describeEvent(spec, hit, kind) {
+  const acc = spec.accuracy ? `　${spec.accuracy}` : ''
+  if (kind) return `${KIND_CN[kind]}${acc}`
+  if (spec.measure === 'distance') return `${(hit.value / AU_KM).toFixed(4)} AU${acc}`
+  if (spec.measure === 'separation') return `角距 ${hit.value.toFixed(2)}°${acc}`
+  if (spec.measure === 'elongation') return `距角 ${hit.value.toFixed(1)}°${acc}`
+  if (spec.measure === 'oppositionGap') return `偏离正冲 ${hit.value.toFixed(2)}°${acc}`
+  return acc.trim()
+}
 
 // ---- 自动导览 --------------------------------------------------------------
 
@@ -405,7 +520,7 @@ if (import.meta.env.DEV) {
   window.__solar = {
     scene, camera, renderer, cameraRig, bodySystem, time, scale, composer, sunLight,
     hud, infoPanel, timeControls, select, deselect, landing, surfaceHud, asteroidBelt, smallBodies,
-    tour, tourScene, labels, filters, music, loadingScreen,
+    tour, tourScene, labels, filters, music, loadingScreen, ephemeris, eventsPanel, eventProvider,
   }
 }
 

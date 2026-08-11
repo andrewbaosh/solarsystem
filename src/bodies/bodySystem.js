@@ -40,7 +40,7 @@ const SPHERE = new THREE.SphereGeometry(1, 96, 48)
  *     ├ atmosphere（Fresnel 辉光外壳）
  *     └ anchor（卫星系统）
  */
-export function createBodySystem(scene, { planets, elements, satellites }) {
+export function createBodySystem(scene, { planets, elements, satellites, ephemeris = null }) {
   const bodies = []
   const byId = new Map()
   const atmospheres = []
@@ -210,6 +210,9 @@ export function createBodySystem(scene, { planets, elements, satellites }) {
 
   // ---- 每帧更新 ------------------------------------------------------------
 
+  const scratchAU = { x: 0, y: 0, z: 0 }
+  const AU_KM_LOCAL = 149597870.7
+
   let lastRevision = -1
   let lastOrbitJD = null
   const dirToParent = new THREE.Vector3()
@@ -224,10 +227,19 @@ export function createBodySystem(scene, { planets, elements, satellites }) {
       const { data, group, mesh } = body
 
       if (body.kind === 'planet') {
-        if (body.elementSet) {
+        // 位置源优先用 VSOP87；表还没加载完就先用 Standish，两者差角分级，看不出切换
+        if (ephemeris?.hasPlanet(data.id)) {
+          const au = ephemeris.planet(data.id, jd, scratchAU)
+          body.positionKm.set(au.x * AU_KM_LOCAL, au.y * AU_KM_LOCAL, au.z * AU_KM_LOCAL)
+          radialToScene(body.positionKm, toSceneDistance, group.position)
+        } else if (body.elementSet) {
           heliocentricKm(body.elementSet, jd, body.positionKm)
           radialToScene(body.positionKm, toSceneDistance, group.position)
         }
+      } else if (data.id === 'moon' && ephemeris?.hasMoon()) {
+        // 月球换成 ELP2000：平均要素模型的误差超过 1°，日月食完全算不了
+        ephemeris.moon(jd, body.localKm)
+        radialToScene(body.localKm, toSceneSatelliteDistance, group.position)
       } else {
         satellitePositionKm(data, jd, body.localKm)
         radialToScene(body.localKm, toSceneSatelliteDistance, group.position)

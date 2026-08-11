@@ -1,0 +1,1 @@
+{"_meta":{"source":"Bretagnon P., Francou G. (1988) A&A 202, 309 — VSOP87 version A","url":"https://cdsarc.cds.unistra.fr/ftp/VI/81/","frame":"日心直角坐标，J2000 动力学黄道与春分点，单位 AU","truncatedBelowAU":{"earth":1e-9,"_default":5e-8},"note":"截断残余是最坏情况上界（所有被丢项同相位），实际误差远小于此"},"planets":["mercury","venus","earth","mars","jupiter","saturn","uranus","neptune"]}

@@ -1,0 +1,21 @@
+{
+  "_generated": "由 scripts/build-ephemeris.mjs 生成，勿手改",
+  "vsop87": {
+    "source": "Bretagnon P., Francou G. (1988) A&A 202, 309 — VSOP87 version A",
+    "url": "https://cdsarc.cds.unistra.fr/ftp/VI/81/",
+    "frame": "日心直角坐标，J2000 动力学黄道与春分点，单位 AU",
+    "truncatedBelowAU": {
+      "earth": 1e-9,
+      "_default": 5e-8
+    },
+    "note": "截断残余是最坏情况上界（所有被丢项同相位），实际误差远小于此"
+  },
+  "elp2000": {
+    "source": "Chapront-Touzé M., Chapront J. (1983, 1988) — ELP 2000-82B",
+    "url": "https://cdsarc.cds.unistra.fr/ftp/VI/79/",
+    "frame": "月球地心直角坐标，J2000 平黄道与惯性春分点，单位 km",
+    "includes": "仅主问题级数（ELP1–3）。地球形状、潮汐、相对论、行星摄动项未纳入",
+    "truncatedBelowArcsec": 0.002,
+    "truncatedBelowKm": 0.02
+  }
+}
