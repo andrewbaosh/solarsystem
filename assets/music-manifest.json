@@ -1,0 +1,35 @@
+{
+  "_meta": {
+    "purpose": "背景音床的素材清单。scripts/fetch-music.js 只认这个文件，逐条按 url 下载。",
+    "boundary": "脚本不会搜索、不会爬取、不会做任何音源发现 —— 授权判断只能由人工完成后写进这里。",
+    "required": ["id", "url", "license", "author"],
+    "hardFail": "缺 license 或 author 的条目会让脚本报错退出，且一个文件都不下载。",
+    "fields": {
+      "id": "文件名与运行时索引用的键；只允许 [a-z0-9_-]",
+      "url": "直链，必须是 http/https",
+      "license": "PD / CC0 / CC-BY-4.0 / CC-BY-SA-4.0 …… 写清楚版本",
+      "author": "作者或演奏团体",
+      "source": "作品页地址（不是直链），写进 CREDITS.md 供追溯",
+      "title": "曲名，可选；缺省时 CREDITS 用 id",
+      "targetLoudness_LUFS": "响度归一化目标，背景音床统一 -23；缺省即 -23",
+      "loopStart": "循环起点，秒。人工标定到乐句边界",
+      "loopEnd": "循环终点，秒。与 loopStart 同时给出才生效；缺一个就退化成整文件循环并在控制台警告",
+      "note": "备注，可选，不参与任何逻辑"
+    },
+    "example": {
+      "id": "overview-bed",
+      "url": "https://archive.org/download/xxx/yyy.mp3",
+      "license": "PD",
+      "author": "US Air Force Band",
+      "source": "https://archive.org/details/xxx",
+      "title": "…",
+      "targetLoudness_LUFS": -23,
+      "loopStart": 12.48,
+      "loopEnd": 148.96
+    },
+    "howToLoop": "在音频编辑器里找两个乐句边界，让 loopEnd 处的尾音与 loopStart 处的起音能接上。标定后跑一遍 npm run music，脚本会核对循环点没有超出实际时长。",
+    "longTracks": "超过 5 分钟的音轨运行时会自动改用流式播放（HTMLAudioElement），循环点靠 seek 实现，接缝可能听得出来。要无缝循环就把音床控制在 5 分钟以内。"
+  },
+
+  "tracks": []
+}

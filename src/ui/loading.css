@@ -114,3 +114,38 @@
   border-top-color: #9cc4ff;
   animation: boot-spin 0.9s linear infinite;
 }
+
+/* 加载完才出现的进场按钮。它存在的理由是给 AudioContext 一次用户手势 */
+.boot-start {
+  margin-top: 26px;
+  padding: 10px 34px;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  color: #dce9ff;
+  background: rgba(20, 34, 60, 0.7);
+  border: 1px solid rgba(127, 176, 255, 0.45);
+  border-radius: 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  cursor: pointer;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.boot.is-ready .boot-start {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.boot-start:hover {
+  background: rgba(40, 74, 128, 0.85);
+  border-color: rgba(127, 176, 255, 0.85);
+  color: #fff;
+}

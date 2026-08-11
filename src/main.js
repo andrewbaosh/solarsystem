@@ -27,12 +27,17 @@ import epigraphsData from '../data/epigraphs.json'
 import smallBodiesData from '../data/small-bodies.json'
 import { createAsteroidBelt } from './bodies/asteroidBelt.js'
 import { createSmallBodies } from './bodies/smallBodies.js'
+import { createAmbientMusic, VIEW } from './audio/ambientMusic.js'
+import { createAudioToggle } from './ui/audioToggle.js'
 import { createTour } from './tour/tourPlayer.js'
 import { createTourUI } from './ui/tourUI.js'
 import tourData from '../data/tour.json'
 
 // 首屏加载界面要在任何资源开始加载之前挂上，否则进度会从中途开始
-createLoadingScreen({ manager: THREE.DefaultLoadingManager })
+const loadingScreen = createLoadingScreen({
+  manager: THREE.DefaultLoadingManager,
+  onStart: () => music.unlock(),
+})
 
 // JPL 表按行给出，场景各处按 id 取
 const planetElements = indexById(orbitalElements.planets)
@@ -134,6 +139,30 @@ const infoPanel = createInfoPanel({
   },
 })
 
+// ---- 背景音乐 --------------------------------------------------------------
+
+/**
+ * 音乐由视图状态驱动，不给手动播放/暂停。
+ * 状态的唯一真相是这里：地表 > 聚焦 > 全景，逐级判断。
+ */
+function currentViewState() {
+  if (landing.getMode() === 'surface') return VIEW.SURFACE
+  return cameraRig.getFocus() ? VIEW.FOCUSED : VIEW.OVERVIEW
+}
+
+const music = createAmbientMusic({
+  baseUrl: import.meta.env.BASE_URL ?? '/',
+  onChange: (s) => audioToggle.render(s),
+})
+
+const audioToggle = createAudioToggle({
+  container: timeControls.element,
+  onToggle: () => music.toggle(),
+  onUnlock: () => music.unlock(),
+})
+audioToggle.render(music.status())
+music.load() // 没有素材就静默降级，不 await，不挡场景
+
 // ---- 登陆 / 返回轨道 --------------------------------------------------------
 
 const surfaceHud = createSurfaceHud({ onExit: () => landing.exit() })
@@ -148,6 +177,7 @@ const landing = createLanding({
   onModeChange: (mode) => {
     // 地表模式下把轨道场景的 UI 全部收起来
     document.body.classList.toggle('surface-mode', mode === 'surface')
+    music.setViewState(currentViewState())
     if (mode === 'surface') infoPanel.hide()
   },
 })
@@ -196,9 +226,12 @@ const tourScene = {
   onEnter: () => {
     deselect() // 导览自己管镜头，跟随焦点会和脚本抢
     cameraRig.cancelFlight()
+    music.setControlMode('tour') // 导览期间音乐交给章节脚本（尚未实现，先让位）
   },
 
   onExit: (snapshot) => {
+    music.setControlMode('ambient')
+    music.setViewState(currentViewState())
     labels.setHighlight(null)
     if (!snapshot) return
     time.setSpeed(snapshot.speed)
@@ -246,6 +279,7 @@ function select(body) {
   if (landing.getMode() === 'surface' || landing.isTransitioning()) return // 地表模式不响应轨道场景的拾取
   if (!body) return deselect()
   cameraRig.flyTo(body)
+  music.setViewState(currentViewState())
   infoPanel.show(body, time.getJD())
   timeControls.applyFocusRate(body) // 贴近看时把倍率压慢，免得自转频闪
   // 面板一打开就把该天体的着陆器模型预热到缓存，用户真点「登陆」时就不用等网络了
@@ -257,6 +291,7 @@ function select(body) {
 function deselect() {
   cameraRig.setFocus(null)
   cameraRig.cancelFlight()
+  music.setViewState(currentViewState())
   infoPanel.hide()
   timeControls.applyFocusRate(null) // 恢复你自己设的倍率
 }
@@ -365,7 +400,7 @@ if (import.meta.env.DEV) {
   window.__solar = {
     scene, camera, renderer, cameraRig, bodySystem, time, scale, composer, sunLight,
     hud, infoPanel, timeControls, select, deselect, landing, surfaceHud, asteroidBelt, smallBodies,
-    tour, tourScene, labels, filters,
+    tour, tourScene, labels, filters, music, loadingScreen,
   }
 }
 

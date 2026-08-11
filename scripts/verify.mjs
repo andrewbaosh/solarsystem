@@ -559,6 +559,49 @@ heading('6. 卫星系统（跑真实 bodySystem）')
   )
 }
 
+// ------------------------------------------------------------------ 音频
+{
+  heading('背景音乐')
+
+  const manifest = JSON.parse(readFileSync(new URL('../assets/music-manifest.json', import.meta.url), 'utf8'))
+  const script = readFileSync(new URL('../scripts/fetch-music.js', import.meta.url), 'utf8')
+
+  // 授权字段是硬约束：脚本必须在缺 license / author 时整批拒绝
+  const badTracks = (manifest.tracks ?? []).filter((t) => !t.license?.trim() || !t.author?.trim())
+  check(
+    'manifest 里每条音轨都有 license 与 author',
+    badTracks.length === 0,
+    badTracks.map((t) => t.id ?? '?').join('、') || `${(manifest.tracks ?? []).length} 条`,
+  )
+
+  // 下载脚本不得含有任何搜索/发现音源的能力 —— 授权判断只能由人工做
+  const forbidden = ['search', 'crawl', 'scrape', 'discover', 'youtube', 'spotify', 'soundcloud']
+  const leaked = forbidden.filter((word) => new RegExp(`\\b${word}`, 'i').test(script))
+  check('下载脚本里没有搜索/爬取音源的逻辑', leaked.length === 0, leaked.join('、') || '只按 manifest 的 url 下载')
+
+  // 增益一律走斜坡：直接赋值 gain.value 会在波形上留阶跃
+  const engine = readFileSync(new URL('../src/audio/audioEngine.js', import.meta.url), 'utf8')
+  const rampCount = (engine.match(/linearRampToValueAtTime/g) ?? []).length
+  const directAssign = [...engine.matchAll(/\.gain\.value\s*=/g)].length
+  check(
+    '增益变化走 linearRampToValueAtTime，没有运行时直接赋值',
+    rampCount >= 2 && directAssign <= 2, // 仅允许构造时设初值
+    `${rampCount} 处斜坡，${directAssign} 处初值赋值`,
+  )
+
+  const music = readFileSync(new URL('../src/audio/ambientMusic.js', import.meta.url), 'utf8')
+  const fades = {
+    淡出: /FADE_OUT = ([\d.]+)/.exec(music)?.[1],
+    淡入: /FADE_IN = ([\d.]+)/.exec(music)?.[1],
+    防抖: /DEBOUNCE_MS = (\d+)/.exec(music)?.[1],
+  }
+  check(
+    '淡入比淡出慢，防抖 500 ms',
+    Number(fades.淡入) > Number(fades.淡出) && fades.防抖 === '500',
+    `淡出 ${fades.淡出}s，淡入 ${fades.淡入}s，防抖 ${fades.防抖}ms`,
+  )
+}
+
 // ------------------------------------------------------------------ 汇总
 console.log(
   failures === 0

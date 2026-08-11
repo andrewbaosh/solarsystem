@@ -1,0 +1,25 @@
+.audio-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.audio-toggle .audio-icon {
+  font-style: normal;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.audio-toggle.is-muted {
+  color: #6f809d;
+}
+
+.audio-toggle.is-muted .audio-icon {
+  opacity: 0.55;
+}
+
+/* 开着但当前视图不该出声：文字保持常态，图标压暗，表示「待命」而不是「关闭」 */
+.audio-toggle.is-idle .audio-icon {
+  opacity: 0.6;
+}
