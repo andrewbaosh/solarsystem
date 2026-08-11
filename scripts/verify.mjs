@@ -602,6 +602,83 @@ heading('6. 卫星系统（跑真实 bodySystem）')
   )
 }
 
+// ------------------------------------------------------------------ 外观真实性
+{
+  heading('外观：彗星结构、小天体外形、巨行星扁率')
+
+  const comets = smallBodiesData.comets ?? []
+  const asteroids = smallBodiesData.asteroids ?? []
+
+  // 活跃彗星必须三件齐全：彗发 + 离子尾 + 尘埃尾
+  const active = comets.filter((c) => c.coma || c.ionTail || c.dustTail)
+  const incomplete = active.filter((c) => !(c.coma && c.ionTail && c.dustTail))
+  check(
+    '每颗活跃彗星都有彗发、离子尾、尘埃尾三层结构',
+    incomplete.length === 0,
+    incomplete.map((c) => c.id).join('、') || active.map((c) => c.id).join('、'),
+  )
+
+  // 奥陌陌恰恰是「没有彗发也没有尾」的那个 —— 这是它当年引发争议的原因，不能给它加
+  const oumuamua = comets.find((c) => c.id === 'oumuamua')
+  check(
+    '奥陌陌没有彗发也没有尾（它的定义特征）',
+    Boolean(oumuamua) && !oumuamua.coma && !oumuamua.ionTail && !oumuamua.dustTail,
+    oumuamua ? '干净' : '找不到 oumuamua',
+  )
+
+  // 照片上的主次：尘埃尾更亮更宽、但更短，而且是弯的；离子尾更长更暗，必须笔直
+  const wrongOrder = active.filter(
+    (c) =>
+      !(c.dustTail.opacity > c.ionTail.opacity) ||
+      !(c.dustTail.widthKm > c.ionTail.widthKm) ||
+      !(c.dustTail.lengthKm < c.ionTail.lengthKm) ||
+      !(c.dustTail.curve > 0) ||
+      (c.ionTail.curve ?? 0) !== 0,
+  )
+  check(
+    '尘埃尾更亮更宽更短且弯曲，离子尾更长更暗且笔直',
+    wrongOrder.length === 0,
+    wrongOrder.map((c) => c.id).join('、') ||
+      active.map((c) => `${c.id} 尘/离 亮度 ${c.dustTail.opacity}/${c.ionTail.opacity}`).join('；'),
+  )
+
+  // 小天体外形：只有够大的才能被自身引力压成球
+  const ratio = (b) => b.shape?.axisRatio ?? 1
+  const ceres = asteroids.find((a) => a.id === 'ceres')
+  const vesta = asteroids.find((a) => a.id === 'vesta')
+  const oum = comets.find((c) => c.id === 'oumuamua')
+  check(
+    '谷神星接近球形，灶神星明显不规则，奥陌陌极端细长',
+    ratio(ceres) < 1.1 && ratio(vesta) > 1.2 && ratio(oum) >= 5,
+    `谷神星 ${ratio(ceres)}、灶神星 ${ratio(vesta)}、奥陌陌 ${ratio(oum)}`,
+  )
+
+  const noShape = [...asteroids, ...comets].filter((b) => !b.shape)
+  check('每颗命名小天体都有外形参数（不再是光滑球）', noShape.length === 0, noShape.map((b) => b.id).join('、') || '全部就位')
+
+  // 巨行星扁率：与 NASA 行星情况说明书对齐，且土星最扁
+  const JPL_FLATTENING = { jupiter: 0.06487, saturn: 0.09796, uranus: 0.02293, neptune: 0.01708 }
+  const bad = Object.entries(JPL_FLATTENING).filter(([id, f]) => {
+    const b = planetsData.bodies.find((x) => x.id === id)
+    return !b?.flattening || Math.abs(b.flattening - f) > 1e-5
+  })
+  const saturnF = planetsData.bodies.find((b) => b.id === 'saturn').flattening
+  check(
+    '四颗巨行星的扁率与 NASA 情况说明书一致，土星最扁',
+    bad.length === 0 && Object.values(JPL_FLATTENING).every((f) => f <= saturnF),
+    bad.map(([id]) => id).join('、') ||
+      Object.entries(JPL_FLATTENING).map(([id, f]) => `${id} ${(f * 100).toFixed(1)}%`).join('，'),
+  )
+
+  // 形状与彗尾的数值一律在 JSON 里，渲染代码不得硬编码
+  const sources = ['cometTail.js', 'rockSurface.js', 'smallBodies.js'].map((f) =>
+    readFileSync(new URL(`../src/bodies/${f}`, import.meta.url), 'utf8'),
+  )
+  const ids = [...asteroids, ...comets].map((b) => b.id)
+  const leaked = ids.filter((id) => sources.some((src) => new RegExp(`['"\`]${id}['"\`]`).test(src)))
+  check('渲染代码里没有硬编码的小天体 id', leaked.length === 0, leaked.join('、') || '干净')
+}
+
 // ------------------------------------------------------------------ 汇总
 console.log(
   failures === 0

@@ -235,7 +235,15 @@ export function createBodySystem(scene, { planets, elements, satellites }) {
 
       const radius = toSceneRadius(data.radiusKm)
       body.sceneRadius = radius
-      mesh.scale.setScalar(radius)
+      // 扁率：自转把气态巨行星甩成了椭球，土星的 0.098 在真实照片上是肉眼可见的。
+      // 压两极、撑赤道并保持体积不变，这样 radiusKm 仍然是体积平均半径。
+      if (data.flattening) {
+        const f = data.flattening
+        const eq = Math.cbrt(1 / (1 - f))
+        mesh.scale.set(radius * eq, radius * eq * (1 - f), radius * eq)
+      } else {
+        mesh.scale.setScalar(radius)
+      }
 
       if (data.tidallyLocked) {
         dirToParent.copy(group.position).negate().normalize()
@@ -247,12 +255,13 @@ export function createBodySystem(scene, { planets, elements, satellites }) {
       }
 
       if (body.clouds) {
-        body.clouds.scale.setScalar(radius * (data.cloudLayer.radiusScale ?? 1.003))
+        body.clouds.scale.copy(mesh.scale).multiplyScalar(data.cloudLayer.radiusScale ?? 1.003)
         body.clouds.rotation.y = mesh.rotation.y * (data.cloudLayer.rotationFactor ?? 1.1)
       }
       if (body.ring) body.ring.scale.setScalar(radius)
       if (body.atmosphere) {
-        body.atmosphere.scale.setScalar(radius * (data.atmosphere.radiusScale ?? 1.03))
+        // 大气壳挂在 group 而不是 tilt 下，只能按同样的比例压，方向由 tilt 决定
+        body.atmosphere.scale.copy(mesh.scale).multiplyScalar(data.atmosphere.radiusScale ?? 1.03)
       }
     }
 

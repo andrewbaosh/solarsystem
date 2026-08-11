@@ -1,6 +1,7 @@
 import './hud.css'
 import './controls.css'
 import * as time from '../core/time.js'
+import { SMALL_BODY_BOOST } from '../bodies/smallBodies.js'
 import {
   getScaleMode,
   getModeBlend,
@@ -104,6 +105,7 @@ export function createHUD({ camera, cameraRig }) {
       row('距离压缩比', `×${sci(compression)}   @ 当前视距 ${sci(camDistKm)} km`),
       row('半径放大倍数', `×${sci(getRadiusExaggeration())}`),
       row('卫星轨道系数', `×${sci(getSatelliteOrbitScale())}`),
+      row('小天体放大  ', `×${sci(SMALL_BODY_BOOST)}`),
       row('聚焦目标', cameraRig.getFocus()?.data?.name ?? '自由视角'),
     ].join('<br>')
 

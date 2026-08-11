@@ -20,10 +20,26 @@
     "maxEccentricity": 0.18,
     "maxInclinationDeg": 18,
     "kirkwoodGaps": [
-      { "au": 2.502, "widthAU": 0.028, "resonance": "3:1" },
-      { "au": 2.825, "widthAU": 0.022, "resonance": "5:2" },
-      { "au": 2.958, "widthAU": 0.016, "resonance": "7:3" },
-      { "au": 3.279, "widthAU": 0.024, "resonance": "2:1" }
+      {
+        "au": 2.502,
+        "widthAU": 0.028,
+        "resonance": "3:1"
+      },
+      {
+        "au": 2.825,
+        "widthAU": 0.022,
+        "resonance": "5:2"
+      },
+      {
+        "au": 2.958,
+        "widthAU": 0.016,
+        "resonance": "7:3"
+      },
+      {
+        "au": 3.279,
+        "widthAU": 0.024,
+        "resonance": "2:1"
+      }
     ],
     "color": "#8d8175",
     "seed": 1801
@@ -41,7 +57,13 @@
       "tp": 2461599.8415,
       "radiusKm": 469.7,
       "color": "#9b948c",
-      "note": "小行星带里唯一的矮行星，占整条带质量的约三分之一"
+      "note": "小行星带里唯一的矮行星，占整条带质量的约三分之一",
+      "shape": {
+        "roughness": 0.12,
+        "axisRatio": 1.03,
+        "seed": 11,
+        "note": "矮行星，质量足以达到流体静力学平衡，接近球形"
+      }
     },
     {
       "id": "vesta",
@@ -55,7 +77,13 @@
       "tp": 2460901.5874,
       "radiusKm": 262.7,
       "color": "#b9ac97",
-      "note": "带内最亮的天体，地球上偶尔肉眼可见"
+      "note": "带内最亮的天体，地球上偶尔肉眼可见",
+      "shape": {
+        "roughness": 0.55,
+        "axisRatio": 1.25,
+        "seed": 23,
+        "note": "573×557×446 km。南极那个 Rheasilvia 撞击坑几乎占掉半个半球，把它砸成了扁的"
+      }
     },
     {
       "id": "pallas",
@@ -69,7 +97,13 @@
       "tp": 2461695.0312,
       "radiusKm": 256,
       "color": "#8c8f92",
-      "note": "轨道倾角 34.9°，是大型小行星里最「斜」的一个"
+      "note": "轨道倾角 34.9°，是大型小行星里最「斜」的一个",
+      "shape": {
+        "roughness": 0.45,
+        "axisRatio": 1.15,
+        "seed": 37,
+        "note": "550×516×476 km，大型小行星里最不规则的之一"
+      }
     },
     {
       "id": "hygiea",
@@ -83,7 +117,13 @@
       "tp": 2461813.2008,
       "radiusKm": 216.5,
       "color": "#6f6a64",
-      "note": "带内第四大天体，形状接近球形"
+      "note": "带内第四大天体，形状接近球形",
+      "shape": {
+        "roughness": 0.2,
+        "axisRatio": 1.06,
+        "seed": 53,
+        "note": "接近球形，2019 年一度被讨论是否够格算矮行星"
+      }
     }
   ],
   "comets": [
@@ -101,9 +141,36 @@
       "tp": 2446469.9736,
       "periodYears": 75.9,
       "radiusKm": 5.5,
-      "hasTail": true,
       "color": "#cfe4f2",
-      "note": "倾角 162°，意味着它是**逆行**的——绕日方向与所有行星相反。上次过近日点是 1986 年，下次 2061 年。"
+      "note": "倾角 162°，意味着它是**逆行**的——绕日方向与所有行星相反。上次过近日点是 1986 年，下次 2061 年。",
+      "shape": {
+        "roughness": 0.8,
+        "axisRatio": 1.9,
+        "seed": 67,
+        "note": "乔托号拍到的彗核是 15×8×8 km 的花生形，表面比煤还黑（反照率 0.04）"
+      },
+      "coma": {
+        "radiusKm": 50000.0,
+        "color": "#a9e3c4",
+        "opacity": 0.85
+      },
+      "ionTail": {
+        "lengthKm": 90000000.0,
+        "widthKm": 18000.0,
+        "color": "#6d9dff",
+        "opacity": 0.3,
+        "falloff": 1.5,
+        "flare": 1.4
+      },
+      "dustTail": {
+        "lengthKm": 46000000.0,
+        "widthKm": 50000.0,
+        "color": "#ffe0b0",
+        "opacity": 0.46,
+        "falloff": 1.9,
+        "flare": 2.4,
+        "curve": 0.55
+      }
     },
     {
       "id": "halebopp",
@@ -119,9 +186,36 @@
       "tp": 2450537.1349,
       "periodYears": 2364,
       "radiusKm": 30,
-      "hasTail": true,
       "color": "#e2f0ff",
-      "note": "倾角 89.3°，几乎垂直于黄道面穿越太阳系。1997 年肉眼可见了 18 个月，是二十世纪观测记录最长的大彗星。"
+      "note": "倾角 89.3°，几乎垂直于黄道面穿越太阳系。1997 年肉眼可见了 18 个月，是二十世纪观测记录最长的大彗星。",
+      "shape": {
+        "roughness": 0.7,
+        "axisRatio": 1.2,
+        "seed": 83,
+        "note": "直径约 60 km 的大彗核，是已知最大的彗核之一"
+      },
+      "coma": {
+        "radiusKm": 150000.0,
+        "color": "#bfeadb",
+        "opacity": 0.9
+      },
+      "ionTail": {
+        "lengthKm": 130000000.0,
+        "widthKm": 26000.0,
+        "color": "#7fb0ff",
+        "opacity": 0.32,
+        "falloff": 1.4,
+        "flare": 1.3
+      },
+      "dustTail": {
+        "lengthKm": 75000000.0,
+        "widthKm": 90000.0,
+        "color": "#ffe7c2",
+        "opacity": 0.54,
+        "falloff": 1.8,
+        "flare": 2.6,
+        "curve": 0.6
+      }
     },
     {
       "id": "oumuamua",
@@ -136,9 +230,14 @@
       "w": 241.81,
       "tp": 2458006.0073,
       "radiusKm": 0.1,
-      "hasTail": false,
       "color": "#c8b9a4",
-      "note": "人类发现的第一个星际天体（2017）。离心率 1.20 说明它不属于太阳系，绕过太阳后就永远离开。奇特之处在于它**没有彗尾**，却有非引力加速度。"
+      "note": "人类发现的第一个星际天体（2017）。离心率 1.20 说明它不属于太阳系，绕过太阳后就永远离开。奇特之处在于它**没有彗尾**，却有非引力加速度。",
+      "shape": {
+        "roughness": 0.5,
+        "axisRatio": 6.0,
+        "seed": 97,
+        "note": "亮度每 7.3 小时变化十几倍，反推出的轴比至少 5:1 —— 这个极端细长的外形正是当年争论的起点"
+      }
     },
     {
       "id": "borisov",
@@ -153,9 +252,35 @@
       "w": 209.12,
       "tp": 2458826.0528,
       "radiusKm": 0.5,
-      "hasTail": true,
       "color": "#bfe0d6",
-      "note": "第二个星际天体（2019），也是第一个明确带彗发彗尾的。成分与太阳系彗星相似，但一氧化碳含量高得异常。"
+      "note": "第二个星际天体（2019），也是第一个明确带彗发彗尾的。成分与太阳系彗星相似，但一氧化碳含量高得异常。",
+      "shape": {
+        "roughness": 0.8,
+        "axisRatio": 1.4,
+        "seed": 101
+      },
+      "coma": {
+        "radiusKm": 20000.0,
+        "color": "#a8dcc8",
+        "opacity": 0.7
+      },
+      "ionTail": {
+        "lengthKm": 16000000.0,
+        "widthKm": 6000.0,
+        "color": "#79a8ee",
+        "opacity": 0.22,
+        "falloff": 1.6,
+        "flare": 1.5
+      },
+      "dustTail": {
+        "lengthKm": 10000000.0,
+        "widthKm": 14000.0,
+        "color": "#f0e2c8",
+        "opacity": 0.34,
+        "falloff": 2.0,
+        "flare": 2.2,
+        "curve": 0.5
+      }
     },
     {
       "id": "atlas3i",
@@ -170,9 +295,36 @@
       "w": 128.02,
       "tp": 2460977.9953,
       "radiusKm": 2.8,
-      "hasTail": true,
       "color": "#d6e8c8",
-      "note": "第三个星际天体（2025 年 7 月发现）。离心率 6.14 是迄今记录到的最极端轨道，进入太阳系时的速度约 58 km/s；倾角 175° 意味着它几乎正对着行星公转方向逆行穿过。2025 年 10 月 29 日过近日点。"
+      "note": "第三个星际天体（2025 年 7 月发现）。离心率 6.14 是迄今记录到的最极端轨道，进入太阳系时的速度约 58 km/s；倾角 175° 意味着它几乎正对着行星公转方向逆行穿过。2025 年 10 月 29 日过近日点。",
+      "shape": {
+        "roughness": 0.75,
+        "axisRatio": 1.3,
+        "seed": 103
+      },
+      "coma": {
+        "radiusKm": 35000.0,
+        "color": "#b6e4bf",
+        "opacity": 0.75
+      },
+      "ionTail": {
+        "lengthKm": 28000000.0,
+        "widthKm": 9000.0,
+        "color": "#84b4f2",
+        "opacity": 0.24,
+        "falloff": 1.6,
+        "flare": 1.5
+      },
+      "dustTail": {
+        "lengthKm": 18000000.0,
+        "widthKm": 24000.0,
+        "color": "#f4e6cc",
+        "opacity": 0.38,
+        "falloff": 1.9,
+        "flare": 2.3,
+        "curve": 0.52
+      }
     }
-  ]
+  ],
+  "_visualNote": "彗星的可见结构分三层：彗发（C₂ 荧光偏绿的球状包层）、离子尾（CO⁺ 荧光偏蓝、严格背日、笔直）、尘埃尾（反射阳光偏黄白、因保留轨道角动量而向轨迹后方弯曲）。活跃度由日距算出：4 AU 之外为 0，到各自近日点为 1。奥陌陌没有彗发也没有尾 —— 那正是它当年引发争议的原因，所以这三个字段它一个都没有。"
 }

@@ -23,7 +23,8 @@
   "conventions": {
     "axis": "自转轴取向来自 IAU 极点 (α0, δ0)，经 ε=23.43928° 转到黄道坐标系后施加，不是简单绕 Y 轴旋转",
     "sense": "自转方向只由 rotationPeriodHours 的符号决定。IAU 极点是按不变平面定义的北极，因此金星/天王星的极点几乎朝上，其逆行体现在周期为负——两者不重复计算",
-    "obliquityCheck": "obliquityDeg 应当等于【sign(周期)·极点方向】与【该天体轨道法线】的夹角，verify 脚本会核对"
+    "obliquityCheck": "obliquityDeg 应当等于【sign(周期)·极点方向】与【该天体轨道法线】的夹角，verify 脚本会核对",
+    "flattening": "扁率 (a−b)/a，来自 NASA 行星情况说明书。radiusKm 是体积平均半径，渲染时按扁率把两极压扁、赤道撑开，保持体积不变 —— 土星扁率 0.098，在任何一张真实照片上都是肉眼可见的。"
   },
   "bodies": [
     {
@@ -279,7 +280,8 @@
           "craterDensity": 0,
           "rockDensity": 0.5
         }
-      }
+      },
+      "flattening": 0.00335
     },
     {
       "id": "mars",
@@ -354,7 +356,8 @@
           "craterDensity": 0.28,
           "rockDensity": 0.9
         }
-      }
+      },
+      "flattening": 0.00589
     },
     {
       "id": "jupiter",
@@ -391,7 +394,8 @@
       "surface": {
         "landable": false,
         "reason": "气态巨行星与恒星没有可站立的固体表面"
-      }
+      },
+      "flattening": 0.06487
     },
     {
       "id": "saturn",
@@ -433,7 +437,8 @@
       "surface": {
         "landable": false,
         "reason": "气态巨行星与恒星没有可站立的固体表面"
-      }
+      },
+      "flattening": 0.09796
     },
     {
       "id": "uranus",
@@ -474,7 +479,8 @@
       "surface": {
         "landable": false,
         "reason": "气态巨行星与恒星没有可站立的固体表面"
-      }
+      },
+      "flattening": 0.02293
     },
     {
       "id": "neptune",
@@ -516,7 +522,8 @@
       "surface": {
         "landable": false,
         "reason": "气态巨行星与恒星没有可站立的固体表面"
-      }
+      },
+      "flattening": 0.01708
     }
   ],
   "background": {
