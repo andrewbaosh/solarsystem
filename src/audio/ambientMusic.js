@@ -88,11 +88,14 @@ export function createAmbientMusic({ baseUrl = '/', onChange } = {}) {
       const res = await fetch(`${baseUrl}audio/music/index.json`, { cache: 'no-cache' })
       if (!res.ok) throw new Error(`索引 HTTP ${res.status}`)
       const index = await res.json()
-      const first = index.tracks?.[0]
-      if (!first) throw new Error('索引里没有音轨')
+      const list = index.tracks ?? []
+      if (!list.length) throw new Error('索引里没有音轨')
 
-      await engine.loadTrack(first, `${baseUrl}${first.file}`)
-      track = first
+      // 每次进来随机挑一首：三首音床各有各的性格，总听同一首会腻。
+      // 只取中选的那一条，所以每次访问仍然只下载一首的体积。
+      const pick = list[Math.floor(Math.random() * list.length)]
+      await engine.loadTrack(pick, `${baseUrl}${pick.file}`)
+      track = pick
       notify()
       // 载入完成时可能已经稳定在某个状态了，补一次判断
       reconcile()

@@ -2,7 +2,12 @@
   "_meta": {
     "purpose": "背景音床的素材清单。scripts/fetch-music.js 只认这个文件，逐条按 url 下载。",
     "boundary": "脚本不会搜索、不会爬取、不会做任何音源发现 —— 授权判断只能由人工完成后写进这里。",
-    "required": ["id", "url", "license", "author"],
+    "required": [
+      "id",
+      "url",
+      "license",
+      "author"
+    ],
     "hardFail": "缺 license 或 author 的条目会让脚本报错退出，且一个文件都不下载。",
     "fields": {
       "id": "文件名与运行时索引用的键；只允许 [a-z0-9_-]",
@@ -14,7 +19,9 @@
       "targetLoudness_LUFS": "响度归一化目标，背景音床统一 -23；缺省即 -23",
       "loopStart": "循环起点，秒。人工标定到乐句边界",
       "loopEnd": "循环终点，秒。与 loopStart 同时给出才生效；缺一个就退化成整文件循环并在控制台警告",
-      "note": "备注，可选，不参与任何逻辑"
+      "note": "备注，可选，不参与任何逻辑",
+      "trim": "可选 { start, duration }，秒。先裁剪再归一化——18 分钟的乐章不裁没法当音床用，而且裁到 5 分钟以内才能走无缝循环那条路。裁剪后 loopStart/loopEnd 按裁剪后的文件计。",
+      "mp3Quality": "可选，libmp3lame 的 -q:a，0 最好 9 最差，缺省 2。音床在 −20 dB 上播放，5 已经够用且能省一半体积。"
     },
     "example": {
       "id": "overview-bed",
@@ -25,11 +32,63 @@
       "title": "…",
       "targetLoudness_LUFS": -23,
       "loopStart": 12.48,
-      "loopEnd": 148.96
+      "loopEnd": 148.96,
+      "trim": {
+        "start": 406,
+        "duration": 257
+      },
+      "mp3Quality": 5
     },
     "howToLoop": "在音频编辑器里找两个乐句边界，让 loopEnd 处的尾音与 loopStart 处的起音能接上。标定后跑一遍 npm run music，脚本会核对循环点没有超出实际时长。",
     "longTracks": "超过 5 分钟的音轨运行时会自动改用流式播放（HTMLAudioElement），循环点靠 seek 实现，接缝可能听得出来。要无缝循环就把音床控制在 5 分钟以内。"
   },
-
-  "tracks": []
+  "tracks": [
+    {
+      "id": "bruckner7-adagio",
+      "title": "布鲁克纳《第七交响曲》第二乐章 柔板（片段）",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/07/HSO_Bruckner-7_02.mp3",
+      "license": "PD",
+      "author": "慕尼黑音乐与戏剧大学交响乐团（Hochschule für Musik und Theater München）",
+      "source": "https://commons.wikimedia.org/wiki/File:HSO_Bruckner-7_02.mp3",
+      "targetLoudness_LUFS": -23,
+      "trim": {
+        "start": 406,
+        "duration": 257
+      },
+      "mp3Quality": 5,
+      "loopStart": 1.5,
+      "loopEnd": 255.5,
+      "note": "布鲁克纳写在瓦格纳去世前后，配了四支瓦格纳大号，是公有领域曲目里最「低沉稳重宏大」的一段。原乐章 17 分 56 秒，这里裁的是 6:46–11:03 —— 两端都落在实测 −62 dB 与 −65 dB 的极安静处，接缝是静接静。"
+    },
+    {
+      "id": "holst-neptune",
+      "title": "霍尔斯特《行星组曲》第七乐章 海王星，神秘者",
+      "url": "https://archive.org/download/holst-the-planets-holst-london-symphony-orchestra-1922-1924/The%20Planets%20Op.%2032%2C%20H.%20125_%20VII.%20Neptune%2C%20The%20Mystic.mp3",
+      "license": "PD",
+      "author": "伦敦交响乐团，古斯塔夫·霍尔斯特 指挥（1922–1924 年录音）",
+      "source": "https://archive.org/details/holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+      "targetLoudness_LUFS": -23,
+      "mp3Quality": 5,
+      "loopStart": 2,
+      "loopEnd": 327,
+      "note": "作曲家本人指挥自己写行星的那套曲子。海王星是人类写下的第一段「太空氛围音乐」——没有明确节拍，结尾女声合唱渐弱到真正的无声。5 分 31 秒超过 5 分钟，运行时走流式；但它的循环点两侧都近乎静音，seek 的接缝听不出来。"
+    },
+    {
+      "id": "holst-saturn",
+      "title": "霍尔斯特《行星组曲》第五乐章 土星，暮年之神（片段）",
+      "url": "https://archive.org/download/holst-the-planets-holst-london-symphony-orchestra-1922-1924/The%20Planets%20Op.%2032%2C%20H.%20125_%20V.%20Saturn%2C%20The%20Bringer%20of%20Old%20Age.mp3",
+      "license": "PD",
+      "author": "伦敦交响乐团，古斯塔夫·霍尔斯特 指挥（1922–1924 年录音）",
+      "source": "https://archive.org/details/holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+      "targetLoudness_LUFS": -23,
+      "trim": {
+        "start": 20,
+        "duration": 277
+      },
+      "mp3Quality": 5,
+      "loopStart": 1.5,
+      "loopEnd": 275.5,
+      "note": "霍尔斯特自己最偏爱的一个乐章，长号与竖琴走的是缓慢的钟摆式脚步。裁的是 0:20–4:57，两端都在 −43 dB 与 −40 dB 的安静处。注意这是 1920 年代的声学录音：实测 80 Hz 以下比布鲁克纳低 11 dB，历史价值高于音响价值。"
+    }
+  ]
 }

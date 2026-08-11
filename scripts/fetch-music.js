@@ -27,6 +27,24 @@ import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
+/**
+ * 代理。
+ *
+ * Node 的 fetch 默认**不认** HTTP_PROXY / HTTPS_PROXY —— 而访问 archive.org、
+ * wikimedia 时挂代理几乎是常态，不处理的话表现是「五次重试全部 fetch failed」，
+ * 看起来像是源站挂了。NODE_USE_ENV_PROXY 必须在第一次 fetch 之前由**运行时**
+ * 读取，进程内再设已经来不及，所以这里带着这个变量把自己重新拉起一次。
+ */
+const proxy = process.env.HTTPS_PROXY ?? process.env.https_proxy ?? process.env.HTTP_PROXY ?? process.env.http_proxy
+if (proxy && !process.env.NODE_USE_ENV_PROXY) {
+  const { spawnSync } = await import('node:child_process')
+  const r = spawnSync(process.execPath, process.argv.slice(1), {
+    stdio: 'inherit',
+    env: { ...process.env, NODE_USE_ENV_PROXY: '1', NODE_NO_WARNINGS: '1' },
+  })
+  process.exit(r.status ?? 1)
+}
+
 const run = promisify(execFile)
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
@@ -91,6 +109,13 @@ function validate(tracks) {
 
     if (t.loopStart !== undefined && t.loopEnd !== undefined && !(t.loopEnd > t.loopStart)) {
       problems.push(`${where} loopEnd 必须大于 loopStart`)
+    }
+    if (t.trim) {
+      if (!(t.trim.start >= 0)) problems.push(`${where} trim.start 必须 ≥ 0`)
+      if (!(t.trim.duration > 0)) problems.push(`${where} trim.duration 必须 > 0`)
+    }
+    if (t.mp3Quality !== undefined && !(t.mp3Quality >= 0 && t.mp3Quality <= 9)) {
+      problems.push(`${where} mp3Quality 取 0–9（libmp3lame 的 -q:a，0 最好）`)
     }
   })
 
@@ -206,11 +231,18 @@ function parseLoudnorm(stderr) {
   }
 }
 
-async function measure(file, targetLufs) {
+/** 把 trim 展开成 ffmpeg 的输入参数；两遍 loudnorm 与转码必须用同一段，否则测量的是整轨 */
+function trimArgs(trim) {
+  if (!trim) return { pre: [], post: [] }
+  return { pre: ['-ss', String(trim.start)], post: ['-t', String(trim.duration)] }
+}
+
+async function measure(file, targetLufs, trim) {
+  const { pre, post } = trimArgs(trim)
   const filter = `loudnorm=I=${targetLufs}:TP=${TRUE_PEAK}:LRA=${LRA}:print_format=json`
   const { stderr } = await run(
     'ffmpeg',
-    ['-nostats', '-hide_banner', '-i', file, '-af', filter, '-f', 'null', '-'],
+    ['-nostats', '-hide_banner', ...pre, '-i', file, ...post, '-af', filter, '-f', 'null', '-'],
     { maxBuffer: 1 << 24 },
   )
   return parseLoudnorm(stderr)
@@ -221,9 +253,9 @@ async function measure(file, targetLufs) {
  * 注意 -ar：loudnorm 内部按 192 kHz 工作，不显式指定采样率的话输出会被抬到 192k，
  * 文件白白大三四倍。
  */
-async function normalize(rawFile, outFile, targetLufs) {
+async function normalize(rawFile, outFile, targetLufs, { trim, quality = 2 } = {}) {
   const info = await probe(rawFile)
-  const m = await measure(rawFile, targetLufs)
+  const m = await measure(rawFile, targetLufs, trim)
   if (!m) throw new Error('loudnorm 第一遍没有返回测量结果')
 
   const filter = [
@@ -239,15 +271,18 @@ async function normalize(rawFile, outFile, targetLufs) {
     'print_format=summary',
   ].join(':')
 
+  const { pre, post } = trimArgs(trim)
   await run(
     'ffmpeg',
     [
       '-y', '-nostats', '-hide_banner',
+      ...pre,
       '-i', rawFile,
+      ...post,
       '-af', filter,
       '-ar', String(info.sampleRate),
       '-ac', String(Math.min(2, info.channels)),
-      '-c:a', 'libmp3lame', '-q:a', '2',
+      '-c:a', 'libmp3lame', '-q:a', String(quality),
       outFile,
     ],
     { maxBuffer: 1 << 24 },
@@ -326,8 +361,13 @@ async function main() {
       norm = { before: after, after, achievedLufs: check ? Number(check.input_i) : null, inputLufs: null }
       console.log(c.dim(`      已归一化，跳过（实测 ${norm.achievedLufs?.toFixed(1) ?? '—'} LUFS）`))
     } else {
-      console.log(c.dim(`      两遍 loudnorm → ${lufs} LUFS`))
-      norm = await normalize(rawFile, outFile, lufs)
+      if (track.trim) {
+        console.log(
+          c.dim(`      裁剪 ${track.trim.start}s 起 ${track.trim.duration}s（循环点按裁剪后的文件计）`),
+        )
+      }
+      console.log(c.dim(`      两遍 loudnorm → ${lufs} LUFS，-q:a ${track.mp3Quality ?? 2}`))
+      norm = await normalize(rawFile, outFile, lufs, { trim: track.trim, quality: track.mp3Quality ?? 2 })
       console.log(
         c.dim(`      ${norm.inputLufs?.toFixed(1)} → ${norm.achievedLufs?.toFixed(1)} LUFS，` +
           `${norm.after.duration.toFixed(2)} 秒`),
@@ -335,7 +375,8 @@ async function main() {
     }
 
     // mp3 重编码会带上编码器延迟，时长通常会漂几十毫秒 —— 循环点是按秒标的，值得提醒
-    const drift = Math.abs(norm.after.duration - norm.before.duration)
+    const expected = track.trim ? track.trim.duration : norm.before.duration
+    const drift = Math.abs(norm.after.duration - expected)
     if (norm.inputLufs !== null && drift > 0.05) {
       console.log(c.yellow(`      注意：重编码后时长变了 ${(drift * 1000).toFixed(0)} ms，循环点请以输出文件为准`))
     }

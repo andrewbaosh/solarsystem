@@ -1,0 +1,47 @@
+{
+  "_generated": "由 scripts/fetch-music.js 生成，勿手改；改 assets/music-manifest.json 后重跑",
+  "tracks": [
+    {
+      "id": "bruckner7-adagio",
+      "title": "布鲁克纳《第七交响曲》第二乐章 柔板（片段）",
+      "license": "PD",
+      "author": "慕尼黑音乐与戏剧大学交响乐团（Hochschule für Musik und Theater München）",
+      "source": "https://commons.wikimedia.org/wiki/File:HSO_Bruckner-7_02.mp3",
+      "file": "audio/music/bruckner7-adagio.mp3",
+      "duration": 257.045,
+      "loopStart": 1.5,
+      "loopEnd": 255.5,
+      "targetLoudness_LUFS": -23,
+      "achievedLoudness_LUFS": -23.1,
+      "note": "布鲁克纳写在瓦格纳去世前后，配了四支瓦格纳大号，是公有领域曲目里最「低沉稳重宏大」的一段。原乐章 17 分 56 秒，这里裁的是 6:46–11:03 —— 两端都落在实测 −62 dB 与 −65 dB 的极安静处，接缝是静接静。"
+    },
+    {
+      "id": "holst-neptune",
+      "title": "霍尔斯特《行星组曲》第七乐章 海王星，神秘者",
+      "license": "PD",
+      "author": "伦敦交响乐团，古斯塔夫·霍尔斯特 指挥（1922–1924 年录音）",
+      "source": "https://archive.org/details/holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+      "file": "audio/music/holst-neptune.mp3",
+      "duration": 331.102,
+      "loopStart": 2,
+      "loopEnd": 327,
+      "targetLoudness_LUFS": -23,
+      "achievedLoudness_LUFS": -23,
+      "note": "作曲家本人指挥自己写行星的那套曲子。海王星是人类写下的第一段「太空氛围音乐」——没有明确节拍，结尾女声合唱渐弱到真正的无声。5 分 31 秒超过 5 分钟，运行时走流式；但它的循环点两侧都近乎静音，seek 的接缝听不出来。"
+    },
+    {
+      "id": "holst-saturn",
+      "title": "霍尔斯特《行星组曲》第五乐章 土星，暮年之神（片段）",
+      "license": "PD",
+      "author": "伦敦交响乐团，古斯塔夫·霍尔斯特 指挥（1922–1924 年录音）",
+      "source": "https://archive.org/details/holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+      "file": "audio/music/holst-saturn.mp3",
+      "duration": 277.029,
+      "loopStart": 1.5,
+      "loopEnd": 275.5,
+      "targetLoudness_LUFS": -23,
+      "achievedLoudness_LUFS": -22.9,
+      "note": "霍尔斯特自己最偏爱的一个乐章，长号与竖琴走的是缓慢的钟摆式脚步。裁的是 0:20–4:57，两端都在 −43 dB 与 −40 dB 的安静处。注意这是 1920 年代的声学录音：实测 80 Hz 以下比布鲁克纳低 11 dB，历史价值高于音响价值。"
+    }
+  ]
+}

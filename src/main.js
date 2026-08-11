@@ -36,7 +36,12 @@ import tourData from '../data/tour.json'
 // 首屏加载界面要在任何资源开始加载之前挂上，否则进度会从中途开始
 const loadingScreen = createLoadingScreen({
   manager: THREE.DefaultLoadingManager,
-  onStart: () => music.unlock(),
+  onStart: () => {
+    // 音床是几 MB，放在这里取而不是页面一打开就取：首屏带宽全留给贴图，
+    // 而且这次点击同时也是 AudioContext 需要的那个用户手势
+    music.unlock()
+    music.load()
+  },
 })
 
 // JPL 表按行给出，场景各处按 id 取
@@ -161,7 +166,7 @@ const audioToggle = createAudioToggle({
   onUnlock: () => music.unlock(),
 })
 audioToggle.render(music.status())
-music.load() // 没有素材就静默降级，不 await，不挡场景
+// 素材在「开始探索」点击时才加载（见上面的 onStart）；没有素材就静默降级
 
 // ---- 登陆 / 返回轨道 --------------------------------------------------------
 
